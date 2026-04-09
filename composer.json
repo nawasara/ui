@@ -1,0 +1,32 @@
+{
+    "name": "nawasara/ui",
+    "description": "UI components, layouts, and theme for Nawasara superapp",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Nawasara\\Ui\\": "src/"
+        },
+        "files": [
+            "src/Helpers/functions.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Nawasara\\Ui\\Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "php": "^8.1",
+        "illuminate/support": "^10.0|^12.0",
+        "livewire/livewire": "^3.0",
+        "mallardduck/blade-lucide-icons": "^1.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Nawasara\\Ui\\UiServiceProvider"
+            ]
+        }
+    }
+}
