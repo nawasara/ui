@@ -1,35 +1,38 @@
 @props([
     'label' => null,
-    'name',
+    'name' => null,
     'options' => [],
     'placeholder' => '-- Pilih --',
     'hint' => null,
 ])
 
-<div class="flex flex-col gap-1">
+<div class="flex flex-col gap-1 w-full sm:w-auto sm:min-w-40">
     @if ($attributes->has('label'))
         <x-nawasara-ui::form.label :value="$attributes['label']" />
     @endif
 
-    <select id="{{ $name }}" name="{{ $name }}"
+    <select @if($name) id="{{ $name }}" name="{{ $name }}" @endif
         {{ $attributes->merge([
-            'class' => 'w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm',
+            'class' => 'py-3 px-4 block w-full border border-gray-300 rounded-md text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-green-700/80 focus:!border-transparent outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100',
         ]) }}>
         @if ($placeholder)
             <option value="">{{ $placeholder }}</option>
         @endif
         @foreach ($options as $value => $text)
-            <option value="{{ $value }}" @selected(old($name) == $value)>
+            <option value="{{ $value }}" @selected($name && old($name) == $value)>
                 {{ $text }}
             </option>
         @endforeach
+        {{ $slot }}
     </select>
 
     @if ($hint)
         <p class="text-xs text-gray-500">{{ $hint }}</p>
     @endif
 
-    @error($name)
-        <p class="text-xs text-red-600">{{ $message }}</p>
-    @enderror
+    @if ($name)
+        @error($name)
+            <p class="text-xs text-red-600">{{ $message }}</p>
+        @enderror
+    @endif
 </div>
