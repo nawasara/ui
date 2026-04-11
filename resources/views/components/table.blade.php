@@ -20,7 +20,10 @@
                 <div class="col-span-2 p-5 text-lg font-semibold text-left rtl:text-right text-gray-900 dark:text-white">
                     {{ $title }}
                 </div>
-                <div class="flex flex-col items-end justify-center">
+                <div class="flex flex-col items-end justify-center gap-2">
+                    @if (isset($action))
+                        <div>{{ $action }}</div>
+                    @endif
                     @if ($useSearch)
                         <div class="flex flex-row items-center gap-2 mb-2">
                             <x-nawasara-ui::form.input id="search-table" x-model="searchValue" name="name"
@@ -32,7 +35,12 @@
                     @endif
                 </div>
             </div>
-            <div class="-m-1.5 overflow-x-auto mb-5">
+            <div class="-m-1.5 overflow-x-auto mb-5
+                [&::-webkit-scrollbar]:h-1.5
+                [&::-webkit-scrollbar-track]:bg-transparent
+                [&::-webkit-scrollbar-thumb]:rounded-full
+                [&::-webkit-scrollbar-thumb]:bg-gray-300
+                dark:[&::-webkit-scrollbar-thumb]:bg-neutral-600">
                 <div class="p-1.5 min-w-full inline-block align-middle">
                     <div class="overflow-hidden">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
