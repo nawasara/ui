@@ -19,13 +19,14 @@
 <div x-data="{ open: @entangle($attributes->wire('model')).live }"
     x-show="open" x-cloak
     x-on:keydown.escape.window="open = false"
-    class="fixed inset-0 z-50 overflow-y-auto">
+    x-init="$watch('open', v => document.body.classList.toggle('overflow-hidden', v))"
+    class="fixed inset-0 z-[80] overflow-y-auto">
 
     {{-- Overlay --}}
     <div x-show="open"
         x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
         x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-        class="fixed inset-0 bg-black/50 dark:bg-black/70"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm dark:bg-black/70"
         @click="open = false"></div>
 
     {{-- Modal --}}
@@ -56,7 +57,12 @@
             @endif
 
             {{-- Body --}}
-            <div class="px-6 py-4 max-h-[70vh] overflow-y-auto">
+            <div class="px-6 py-4 max-h-[70vh] overflow-y-auto
+                [&::-webkit-scrollbar]:w-1.5
+                [&::-webkit-scrollbar-track]:bg-transparent
+                [&::-webkit-scrollbar-thumb]:rounded-full
+                [&::-webkit-scrollbar-thumb]:bg-gray-300
+                dark:[&::-webkit-scrollbar-thumb]:bg-neutral-600">
                 {{ $slot }}
             </div>
 
