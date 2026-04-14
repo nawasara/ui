@@ -13,7 +13,7 @@
     <button id="hs-filter-{{ $model }}" type="button"
         class="hs-dropdown-toggle py-2.5 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border shadow-sm focus:outline-none disabled:opacity-50 disabled:pointer-events-none transition-colors
         {{ $isActive
-            ? 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:border-green-800/50 dark:text-green-400'
+            ? 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:border-green-800/50 dark:text-green-400 dark:hover:bg-green-900/40'
             : 'border-gray-200 bg-white text-gray-800 hover:bg-gray-50 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-700' }}"
         aria-haspopup="menu" aria-expanded="false">
         {{ $label }}
