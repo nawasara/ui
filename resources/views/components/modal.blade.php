@@ -1,4 +1,5 @@
 @props([
+    'id' => null,
     'title' => null,
     'subtitle' => null,
     'maxWidth' => 'lg',
@@ -14,20 +15,47 @@
         '3xl' => 'max-w-3xl',
         default => 'max-w-lg',
     };
+
+    $hasWireModel = (bool) $attributes->wire('model')->value();
+    $modalId = $id ?? uniqid('modal-');
 @endphp
 
-<div x-data="{ open: @entangle($attributes->wire('model')).live }"
+{{-- Alpine-first modal (id mode) — no server roundtrip for open/close --}}
+@if (! $hasWireModel)
+<div x-data="{
+        open: false,
+        loading: false,
+        show()        { this.open = true; this.loading = false; },
+        showLoading() { this.open = true; this.loading = true; },
+        close()       { this.open = false; this.loading = false; },
+    }"
+    x-on:keydown.escape.window="if (open) close()"
+    x-init="
+        $wire.on('modal-open:{{ $modalId }}', () => { show() });
+        $wire.on('modal-close:{{ $modalId }}', () => { close() });
+        $watch('open', v => document.body.classList.toggle('overflow-hidden', v));
+    "
+    @open-modal.window="if ($event.detail === '{{ $modalId }}' || $event.detail?.id === '{{ $modalId }}') {
+        $event.detail?.loading ? showLoading() : show()
+    }"
+    @close-modal.window="if ($event.detail === '{{ $modalId }}' || $event.detail?.id === '{{ $modalId }}') close()"
     x-show="open" x-cloak
-    x-on:keydown.escape.window="open = false"
-    x-init="$watch('open', v => document.body.classList.toggle('overflow-hidden', v))"
     class="fixed inset-0 z-[80] overflow-y-auto">
+@else
+{{-- Legacy wire:model mode (backward compat) --}}
+<div x-data="{ open: @entangle($attributes->wire('model')).live, loading: false }"
+    x-on:keydown.escape.window="if (open) { open = false }"
+    x-init="$watch('open', v => document.body.classList.toggle('overflow-hidden', v))"
+    x-show="open" x-cloak
+    class="fixed inset-0 z-[80] overflow-y-auto">
+@endif
 
     {{-- Overlay --}}
     <div x-show="open"
         x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
         x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
         class="fixed inset-0 bg-black/60 backdrop-blur-sm dark:bg-black/70"
-        @click="open = false"></div>
+        @click="{{ $hasWireModel ? 'open = false' : 'close()' }}"></div>
 
     {{-- Modal --}}
     <div class="flex min-h-full items-center justify-center p-4">
@@ -50,7 +78,7 @@
                             <p class="text-sm text-gray-500 dark:text-neutral-400">{{ $subtitle }}</p>
                         @endif
                     </div>
-                    <button @click="open = false" class="size-8 inline-flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-neutral-300 dark:hover:bg-neutral-700 transition-colors">
+                    <button @click="{{ $hasWireModel ? 'open = false' : 'close()' }}" class="size-8 inline-flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-neutral-300 dark:hover:bg-neutral-700 transition-colors">
                         <x-lucide-x class="size-4" />
                     </button>
                 </div>
@@ -63,12 +91,28 @@
                 [&::-webkit-scrollbar-thumb]:rounded-full
                 [&::-webkit-scrollbar-thumb]:bg-gray-300
                 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-600">
-                {{ $slot }}
+
+                {{-- Loading skeleton (Alpine-first mode only) --}}
+                @if (! $hasWireModel)
+                    <div x-show="loading" x-transition class="space-y-4 animate-pulse">
+                        <div class="h-4 bg-gray-200 dark:bg-neutral-700 rounded w-3/4"></div>
+                        <div class="h-10 bg-gray-200 dark:bg-neutral-700 rounded"></div>
+                        <div class="h-4 bg-gray-200 dark:bg-neutral-700 rounded w-1/2"></div>
+                        <div class="h-10 bg-gray-200 dark:bg-neutral-700 rounded"></div>
+                        <div class="h-4 bg-gray-200 dark:bg-neutral-700 rounded w-2/3"></div>
+                        <div class="h-10 bg-gray-200 dark:bg-neutral-700 rounded"></div>
+                    </div>
+                @endif
+
+                {{-- Actual content --}}
+                <div @if (! $hasWireModel) x-show="!loading" x-transition @endif>
+                    {{ $slot }}
+                </div>
             </div>
 
             {{-- Footer --}}
             @if (isset($footer))
-                <div class="px-6 py-3 border-t border-gray-200 dark:border-neutral-700 flex justify-end gap-3">
+                <div @if (! $hasWireModel) x-show="!loading" @endif class="px-6 py-3 border-t border-gray-200 dark:border-neutral-700 flex justify-end gap-3">
                     {{ $footer }}
                 </div>
             @endif

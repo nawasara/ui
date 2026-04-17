@@ -39,9 +39,16 @@
                     switch ($item['type'] ?? '') {
                         case 'click':
                             $attrs['wire:click'] = $item['wire:click'] ?? "{$item['action']}('{$item['param']}')";
+                            if (! empty($item['modal'])) {
+                                $attrs['x-on:click'] = "\$dispatch('open-modal', {id: '{$item['modal']}', loading: true})";
+                            }
                             break;
+                        case 'link':
                         case 'href':
-                            $attrs['href'] = $item['url'];
+                            $attrs['href'] = $item['href'] ?? $item['url'] ?? '#';
+                            if (! empty($item['navigate'])) {
+                                $attrs['wire:navigate'] = true;
+                            }
                             break;
                         case 'href-navigate':
                             $attrs['href'] = $item['url'];
@@ -58,6 +65,11 @@
                             $attrs['class'] .= ' !text-gray-300 cursor-not-allowed hover:!bg-transparent dark:!text-neutral-600';
                             $attrs['disabled'] = true;
                             break;
+                    }
+
+                    // Confirm dialog support
+                    if (! empty($item['confirm'])) {
+                        $attrs['wire:confirm'] = $item['confirm'];
                     }
                 @endphp
 
