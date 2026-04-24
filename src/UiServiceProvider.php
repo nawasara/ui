@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Symfony\Component\Finder\Finder;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Nawasara\Ui\Services\WorkspaceManager;
 
 class UiServiceProvider extends ServiceProvider
 {
@@ -26,6 +27,9 @@ class UiServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/nawasara-ui.php', 'nawasara-ui');
+
+        $this->app->singleton(WorkspaceManager::class, fn () => new WorkspaceManager());
+        $this->app->alias(WorkspaceManager::class, 'nawasara.workspaces');
     }
 
     private function registerBlade(): void

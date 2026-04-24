@@ -43,37 +43,25 @@
                 data-hs-accordion-always-open>
                 <ul class="space-y-3">
                     <li>
-                        <a class="group flex items-center gap-x-2 text-sm font-semibold text-gray-700 hover:text-green-600 focus:outline-hidden focus:text-green-600 dark:text-neutral-400 dark:hover:text-neutral-300 dark:focus:text-neutral-300 font-semibold text-green-600! dark:text-green-500!"
-                            href="#">
-                            <div
-                                class="p-1.5 border border-gray-200 rounded-lg shadow-2xs group-hover:shadow-xs dark:border-neutral-800 dark:group-hover:border-neutral-700">
-                                <x-lucide-book-open class="shrink-0 size-4 text-green-600" />
+                        <a href="{{ url('/') }}" wire:navigate
+                            class="group flex items-center gap-x-2 text-sm font-semibold text-gray-700 hover:text-green-600 focus:outline-hidden focus:text-green-600 dark:text-neutral-400 dark:hover:text-neutral-300 dark:focus:text-neutral-300">
+                            <div class="p-1.5 border border-gray-200 rounded-lg shadow-2xs group-hover:shadow-xs dark:border-neutral-800 dark:group-hover:border-neutral-700">
+                                <x-lucide-home class="shrink-0 size-4 text-green-600" />
                             </div>
-                            Documentation
-                        </a>
-                    </li>
-                    <li>
-                        <a class="group flex items-center gap-x-2 text-sm font-semibold text-gray-700 hover:text-green-600 focus:outline-hidden focus:text-green-600 dark:text-neutral-400 dark:hover:text-neutral-300 dark:focus:text-neutral-300 "
-                            href="#">
-                            <div
-                                class="p-1.5 border border-gray-200 rounded-lg shadow-2xs group-hover:shadow-xs dark:border-neutral-800 dark:group-hover:border-neutral-700">
-                                <svg class="shrink-0 size-4 text-cyan-600" xmlns="http://www.w3.org/2000/svg"
-                                    width="24" height="24" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <rect width="18" height="7" x="3" y="3" rx="1"></rect>
-                                    <rect width="9" height="7" x="3" y="14" rx="1"></rect>
-                                    <rect width="5" height="7" x="16" y="14" rx="1"></rect>
-                                </svg>
-                            </div>
-                            Examples
+                            Home
                         </a>
                     </li>
                 </ul>
-                @php $currentUrl = url()->current(); @endphp
+                @php
+                    $currentUrl = url()->current();
+                    $workspaces = app('nawasara.workspaces');
+                    $currentWorkspaceMenu = $workspaces->currentMenu();
+                    // If not in a workspace (Home/root), show all accessible workspace headings.
+                    $menusToRender = $currentWorkspaceMenu ? [$currentWorkspaceMenu] : app('nawasara.menu');
+                @endphp
 
                 <ul class="space-y-3">
-                    @foreach (app('nawasara.menu') as $menu)
+                    @foreach ($menusToRender as $menu)
                         @if (!empty($menu['submenu']))
                             <!-- Section heading -->
                             <li>
