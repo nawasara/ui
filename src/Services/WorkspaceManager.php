@@ -5,16 +5,20 @@ namespace Nawasara\Ui\Services;
 use Illuminate\Support\Str;
 
 /**
- * Workspace = one top-level menu group (Cloudflare, WHM, Keycloak, etc.).
+ * Workspace = one top-level menu group (Cloudflare, WHM, Keycloak, Pengaturan, etc.).
  *
- * Each workspace is derived from the merged menu config. Workspace identifier
- * is the URL prefix of its first submenu item (e.g. "nawasara-cloudflare").
+ * Workspace identifier priority:
+ *   1. Explicit 'workspace' key in menu config (recommended — supports multiple
+ *      workspaces from the same package, e.g. "user-management" + "settings"
+ *      both under nawasara-core URL prefix).
+ *   2. Fallback: URL prefix of the first submenu item (e.g. "nawasara-cloudflare").
+ *
+ * Active workspace detection compares the current request path against every
+ * submenu URL in each workspace — so workspaces sharing a URL prefix still
+ * resolve correctly.
  */
 class WorkspaceManager
 {
-    /**
-     * All workspaces, ignoring permissions.
-     */
     public function all(): array
     {
         $menus = app()->bound('nawasara.menu') ? app('nawasara.menu') : [];
@@ -30,9 +34,6 @@ class WorkspaceManager
         return $workspaces;
     }
 
-    /**
-     * Workspaces the current user can access (by permission).
-     */
     public function accessible(): array
     {
         $user = auth()->user();
@@ -49,6 +50,9 @@ class WorkspaceManager
 
     /**
      * Detect the active workspace from the current request URL.
+     *
+     * Strategy: find the workspace whose submenu URLs most specifically match
+     * the current path (longest matching path wins).
      */
     public function current(): ?array
     {
@@ -57,13 +61,19 @@ class WorkspaceManager
             return null;
         }
 
+        $best = null;
+        $bestLength = 0;
+
         foreach ($this->all() as $ws) {
-            if (str_starts_with($path, $ws['id'])) {
-                return $ws;
+            foreach ($ws['paths'] as $wsPath) {
+                if ($wsPath !== '' && str_starts_with($path, $wsPath) && strlen($wsPath) > $bestLength) {
+                    $best = $ws;
+                    $bestLength = strlen($wsPath);
+                }
             }
         }
 
-        return null;
+        return $best;
     }
 
     public function currentId(): ?string
@@ -72,26 +82,11 @@ class WorkspaceManager
     }
 
     /**
-     * Submenu items for the current workspace (filtered by user permissions).
-     * Returns full top-level menu item for sidebar rendering.
+     * Full raw menu entry for the current workspace (for sidebar rendering).
      */
     public function currentMenu(): ?array
     {
-        $current = $this->current();
-        if (! $current) {
-            return null;
-        }
-
-        // Pull full raw menu entry for this workspace.
-        $menus = app()->bound('nawasara.menu') ? app('nawasara.menu') : [];
-        foreach ($menus as $menu) {
-            $ws = $this->toWorkspace($menu);
-            if ($ws && $ws['id'] === $current['id']) {
-                return $menu;
-            }
-        }
-
-        return null;
+        return $this->current()['menu'] ?? null;
     }
 
     /**
@@ -99,9 +94,19 @@ class WorkspaceManager
      */
     protected function toWorkspace(array $menu): ?array
     {
-        // Workspace id = URL prefix of first submenu item (e.g. "nawasara-cloudflare").
-        $prefix = $this->extractPrefix($menu);
-        if (! $prefix) {
+        $paths = $this->extractPaths($menu);
+
+        if (empty($paths)) {
+            return null;
+        }
+
+        // Explicit workspace id wins. Fallback: first-segment of first URL path.
+        $id = $menu['workspace'] ?? null;
+        if (! $id) {
+            $id = explode('/', $paths[0])[0] ?? null;
+        }
+
+        if (! $id) {
             return null;
         }
 
@@ -111,43 +116,37 @@ class WorkspaceManager
         ));
 
         return [
-            'id' => $prefix,
-            'label' => $menu['label'] ?? Str::headline($prefix),
+            'id' => $id,
+            'label' => $menu['label'] ?? Str::headline($id),
             'icon' => $menu['icon'] ?? 'lucide-box',
             'permission' => $menu['permission'] ?? null,
             'first_url' => $this->firstAccessibleUrl($menu),
             'submenu_count' => $submenuCount,
+            'paths' => $paths,
+            'menu' => $menu,
         ];
     }
 
     /**
-     * Extract URL prefix from first submenu (e.g. "nawasara-cloudflare").
+     * Extract normalized URL paths (no host, no leading slash) from all submenu
+     * items. Used both for prefix detection and for matching current URL.
      */
-    protected function extractPrefix(array $menu): ?string
+    protected function extractPaths(array $menu): array
     {
-        $firstUrl = null;
+        $paths = [];
         foreach ($menu['submenu'] ?? [] as $sub) {
-            if (! empty($sub['url'])) {
-                $firstUrl = $sub['url'];
-                break;
+            if (empty($sub['url'])) {
+                continue;
+            }
+            $path = parse_url($sub['url'], PHP_URL_PATH) ?? $sub['url'];
+            $path = trim($path, '/');
+            if ($path !== '') {
+                $paths[] = $path;
             }
         }
-
-        if (! $firstUrl) {
-            return null;
-        }
-
-        // Parse path from full URL, take first segment.
-        $path = parse_url($firstUrl, PHP_URL_PATH) ?? $firstUrl;
-        $path = trim($path, '/');
-        $segments = explode('/', $path);
-
-        return $segments[0] ?? null;
+        return $paths;
     }
 
-    /**
-     * Get the first submenu URL the current user has permission to access.
-     */
     protected function firstAccessibleUrl(array $menu): ?string
     {
         $user = auth()->user();
@@ -156,14 +155,12 @@ class WorkspaceManager
             if (empty($sub['url'])) {
                 continue;
             }
-
             $permission = $sub['permission'] ?? null;
             if (! $permission || ($user && $user->can($permission))) {
                 return $sub['url'];
             }
         }
 
-        // Fallback to first URL even if no permission (will be blocked by middleware).
         foreach ($menu['submenu'] ?? [] as $sub) {
             if (! empty($sub['url'])) {
                 return $sub['url'];
