@@ -49,7 +49,7 @@
                                     @foreach ($headers as $item)
                                         <th scope="col"
                                             class="px-6 py-3 text-xs text-left font-bold text-black uppercase dark:text-neutral-500">
-                                            {{ $item }}
+                                            {!! $item !!}
                                         </th>
                                     @endforeach
                                 </tr>
