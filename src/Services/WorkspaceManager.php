@@ -26,8 +26,32 @@ class WorkspaceManager
 
         foreach ($menus as $menu) {
             $workspace = $this->toWorkspace($menu);
-            if ($workspace) {
-                $workspaces[$workspace['id']] = $workspace;
+            if (! $workspace) {
+                continue;
+            }
+
+            $id = $workspace['id'];
+
+            if (isset($workspaces[$id])) {
+                // Merge submenu and paths into the existing workspace so multiple
+                // packages can contribute to a shared workspace (e.g. several
+                // packages adding pages under "Pengaturan").
+                $workspaces[$id]['menu']['submenu'] = array_merge(
+                    $workspaces[$id]['menu']['submenu'] ?? [],
+                    $workspace['menu']['submenu'] ?? [],
+                );
+                $workspaces[$id]['paths'] = array_values(array_unique(array_merge(
+                    $workspaces[$id]['paths'],
+                    $workspace['paths'],
+                )));
+                $workspaces[$id]['submenu_count'] += $workspace['submenu_count'];
+                // Keep first-declared label/icon/permission/first_url; only
+                // adopt new first_url if existing one is null.
+                if (! $workspaces[$id]['first_url']) {
+                    $workspaces[$id]['first_url'] = $workspace['first_url'];
+                }
+            } else {
+                $workspaces[$id] = $workspace;
             }
         }
 
