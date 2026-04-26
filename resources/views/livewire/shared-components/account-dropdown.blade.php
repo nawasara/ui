@@ -1,37 +1,75 @@
+@php
+    $user = auth()->user();
+    $name = $user?->name ?? 'Guest';
+    $email = $user?->email ?? '';
+    $initials = collect(explode(' ', trim($name)))
+        ->take(2)
+        ->map(fn ($p) => mb_strtoupper(mb_substr($p, 0, 1)))
+        ->implode('');
+    $activeRole = session('active_role');
+    $roleNames = $user?->roles?->pluck('name')->all() ?? [];
+@endphp
+
 <div class="hs-dropdown [--placement:bottom-right] relative inline-flex">
     <button id="hs-dropdown-account" type="button"
-        class="size-9.5 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full border border-transparent text-gray-800 focus:outline-hidden disabled:opacity-50 disabled:pointer-events-none dark:text-white"
-        aria-haspopup="menu" aria-expanded="false" aria-label="Dropdown">
-        <img class="shrink-0 size-9.5 rounded-full"
-            src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=320&h=320&q=80"
-            alt="Avatar">
+        class="size-9 inline-flex justify-center items-center text-sm font-semibold rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 hover:ring-2 hover:ring-green-500/30 focus:outline-hidden focus:ring-2 focus:ring-green-500/40 transition"
+        aria-haspopup="menu" aria-expanded="false" :title="$name">
+        {{ $initials ?: '?' }}
     </button>
 
-    <div class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden min-w-60 bg-white shadow-md rounded-lg mt-2 dark:bg-neutral-800 dark:border dark:border-neutral-700 dark:divide-neutral-700 after:h-4 after:absolute after:-bottom-4 after:start-0 after:w-full before:h-4 before:absolute before:-top-4 before:start-0 before:w-full"
+    <div class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden min-w-64 bg-white shadow-lg rounded-lg mt-2 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 overflow-hidden after:h-4 after:absolute after:-bottom-4 after:start-0 after:w-full before:h-4 before:absolute before:-top-4 before:start-0 before:w-full"
         role="menu" aria-orientation="vertical" aria-labelledby="hs-dropdown-account">
-        <div class="py-3 px-5 bg-gray-100 rounded-t-lg dark:bg-neutral-700">
-            <p class="text-sm text-gray-500 dark:text-neutral-500">Signed in as</p>
-            <p class="text-sm font-medium text-gray-800 dark:text-neutral-200">{{ auth()->user()->name ?? '-' }}</p>
+
+        {{-- Profile header --}}
+        <div class="px-4 py-3 bg-gray-50 dark:bg-neutral-700/50 border-b border-gray-200 dark:border-neutral-700">
+            <div class="flex items-center gap-3">
+                <div class="size-10 inline-flex items-center justify-center rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 font-semibold">
+                    {{ $initials ?: '?' }}
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-sm font-semibold text-gray-800 dark:text-neutral-200 truncate">{{ $name }}</div>
+                    @if ($email)
+                        <div class="text-xs text-gray-500 dark:text-neutral-400 truncate">{{ $email }}</div>
+                    @endif
+                </div>
+            </div>
+
+            @if (! empty($roleNames))
+                <div class="mt-2 flex items-center gap-1.5 text-xs">
+                    @if ($activeRole)
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-medium">
+                            <x-lucide-check class="size-3" />
+                            {{ $activeRole }}
+                        </span>
+                        <span class="text-gray-400">aktif</span>
+                    @else
+                        <span class="text-gray-500 dark:text-neutral-400">Roles:</span>
+                        @foreach ($roleNames as $r)
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300">{{ $r }}</span>
+                        @endforeach
+                    @endif
+                </div>
+            @endif
         </div>
+
+        {{-- Menu items --}}
         <div class="p-1.5 space-y-0.5">
             @stack('profile-links')
-            <a class="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:outline-hidden focus:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-300 dark:focus:bg-neutral-700 dark:focus:text-neutral-300"
-                href="#">
-                <x-lucide-user-round class="shrink-0 size-4" />
-                View Profile
-            </a>
-            <a class="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:outline-hidden focus:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-300 dark:focus:bg-neutral-700 dark:focus:text-neutral-300"
-                href="{{ route('nawasara-core.switch-role') }}" wire:navigate>
-                <x-lucide-refresh-ccw-dot class="shrink-0 size-4" />
-                Switch Role ({{ session('active_role', 'N/A') }})
-            </a>
+
+            @if (count($roleNames) > 1)
+                <a class="flex items-center gap-3 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                    href="{{ route('nawasara-core.switch-role') }}" wire:navigate>
+                    <x-lucide-refresh-ccw-dot class="shrink-0 size-4 text-gray-500" />
+                    <span class="flex-1">Switch Role</span>
+                </a>
+            @endif
 
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"
-                    class="w-full flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:outline-hidden focus:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-300 dark:focus:bg-neutral-700 dark:focus:text-neutral-300">
+                    class="w-full flex items-center gap-3 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-red-50 hover:text-red-700 dark:text-neutral-300 dark:hover:bg-red-900/20 dark:hover:text-red-400">
                     <x-lucide-log-out class="shrink-0 size-4" />
-                    Logout
+                    <span class="flex-1 text-left">Logout</span>
                 </button>
             </form>
         </div>
