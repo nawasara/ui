@@ -12,9 +12,25 @@
 
 <div class="hs-dropdown [--placement:bottom-right] relative inline-flex">
     <button id="hs-dropdown-account" type="button"
-        class="size-9 inline-flex justify-center items-center text-sm font-semibold rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 hover:ring-2 hover:ring-green-500/30 focus:outline-hidden focus:ring-2 focus:ring-green-500/40 transition"
+        class="inline-flex items-center gap-2.5 ps-1 pe-2 sm:pe-3 py-1 rounded-full border border-transparent hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:ring-2 focus:ring-green-500/40 transition"
         aria-haspopup="menu" aria-expanded="false" :title="$name">
-        {{ $initials ?: '?' }}
+        <span class="size-8 inline-flex justify-center items-center text-sm font-semibold rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 shrink-0">
+            {{ $initials ?: '?' }}
+        </span>
+        <span class="hidden sm:flex flex-col items-start leading-tight min-w-0">
+            <span class="text-sm font-semibold text-gray-800 dark:text-neutral-200 truncate max-w-[10rem]">{{ $name }}</span>
+            @if ($activeRole)
+                <span class="inline-flex items-center gap-1 text-[11px] text-green-700 dark:text-green-400 font-medium leading-none">
+                    <x-lucide-shield-check class="size-3" />
+                    {{ $activeRole }}
+                </span>
+            @elseif (! empty($roleNames))
+                <span class="text-[11px] text-gray-500 dark:text-neutral-400 leading-none truncate max-w-[10rem]">
+                    {{ implode(', ', $roleNames) }}
+                </span>
+            @endif
+        </span>
+        <x-lucide-chevron-down class="hidden sm:block size-4 text-gray-400 shrink-0" />
     </button>
 
     <div class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden min-w-64 bg-white shadow-lg rounded-lg mt-2 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 overflow-hidden after:h-4 after:absolute after:-bottom-4 after:start-0 after:w-full before:h-4 before:absolute before:-top-4 before:start-0 before:w-full"
