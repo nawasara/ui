@@ -41,8 +41,15 @@ trait HasBrowserToast
 
     protected function browserToast(string $type, string $message): void
     {
+        // Two-channel dispatch:
+        // 1. $this->js() runs after DOM patch in any Livewire response.
+        // 2. Livewire browser event 'toast' is also listened to by the
+        //    nawasara-toaster Alpine manager — covers cases where the
+        //    js() payload is dropped (no-op responses, error pages).
+        $this->dispatch('toast', type: $type, message: $message);
+
         $js = sprintf(
-            'window.Toast && window.Toast[%s] && window.Toast[%s](%s);',
+            'if (window.Toast && typeof window.Toast[%s] === "function") { window.Toast[%s](%s); }',
             json_encode($type),
             json_encode($type),
             json_encode($message)
