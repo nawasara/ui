@@ -26,13 +26,11 @@
             class="h-full overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
             <nav class="hs-accordion-group relative space-y-8 pt-5 pb-10 sm:pt-7 px-4 sm:px-8 lg:my-0"
                 data-hs-accordion-always-open>
-                <ul class="space-y-3">
+                <ul class="space-y-1">
                     <li>
                         <a href="{{ url('/') }}" wire:navigate
-                            class="group flex items-center gap-x-2 text-sm font-semibold text-gray-700 hover:text-green-600 focus:outline-hidden focus:text-green-600 dark:text-neutral-400 dark:hover:text-neutral-300 dark:focus:text-neutral-300">
-                            <div class="p-1.5 border border-gray-200 rounded-lg shadow-2xs group-hover:shadow-xs dark:border-neutral-800 dark:group-hover:border-neutral-700">
-                                <x-lucide-home class="shrink-0 size-4 text-green-600" />
-                            </div>
+                            class="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-green-600 focus:outline-hidden focus:text-green-600 dark:text-neutral-300 dark:hover:text-green-500">
+                            <x-lucide-home class="shrink-0 size-4 text-green-600 dark:text-green-500" />
                             Home
                         </a>
                     </li>
@@ -54,7 +52,7 @@
                         @if (!empty($menu['submenu']))
                             <!-- Section heading -->
                             <li>
-                                <div class="mb-1 flex items-center gap-2 text-xs font-bold text-gray-850 uppercase tracking-wider dark:text-white">
+                                <div class="mb-1 flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-neutral-300">
                                     @if (! empty($menu['icon']))
                                         <x-dynamic-component :component="$menu['icon']" class="size-4 text-green-600 dark:text-green-500" />
                                     @endif

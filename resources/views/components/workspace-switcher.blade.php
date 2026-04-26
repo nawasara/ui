@@ -44,14 +44,19 @@
 
         {{-- Workspace list --}}
         <div class="max-h-[60vh] overflow-y-auto py-1
+            [color-scheme:light] dark:[color-scheme:dark]
             [&::-webkit-scrollbar]:w-1.5
+            [&::-webkit-scrollbar]:bg-transparent
             [&::-webkit-scrollbar-track]:bg-transparent
+            [&::-webkit-scrollbar-corner]:bg-transparent
             [&::-webkit-scrollbar-thumb]:rounded-full
             [&::-webkit-scrollbar-thumb]:bg-gray-300/60
             hover:[&::-webkit-scrollbar-thumb]:bg-gray-400/80
             dark:[&::-webkit-scrollbar-thumb]:bg-neutral-600/60
             dark:hover:[&::-webkit-scrollbar-thumb]:bg-neutral-500/80
-            [scrollbar-width:thin]">
+            [scrollbar-width:thin]
+            [scrollbar-color:rgb(209_213_219_/_0.6)_transparent]
+            dark:[scrollbar-color:rgb(82_82_82_/_0.6)_transparent]">
             @forelse ($workspaces as $workspace)
                 @php $isActive = $current && $current['id'] === $workspace['id']; @endphp
                 <a href="{{ $workspace['first_url'] ?? '#' }}" wire:navigate @click="open = false"
