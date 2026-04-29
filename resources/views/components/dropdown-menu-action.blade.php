@@ -49,6 +49,12 @@
                             if (! empty($item['navigate'])) {
                                 $attrs['wire:navigate'] = true;
                             }
+                            if (! empty($item['target'])) {
+                                $attrs['target'] = $item['target'];
+                                if ($item['target'] === '_blank') {
+                                    $attrs['rel'] = 'noopener noreferrer';
+                                }
+                            }
                             break;
                         case 'href-navigate':
                             $attrs['href'] = $item['url'];
