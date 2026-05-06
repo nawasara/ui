@@ -62,28 +62,35 @@
                 <div class="w-full p-5 mx-auto text-gray-800 border rounded-lg" x-data="input()"
                     x-init="generatePassword()">
 
-                    {{-- Password Input Field --}}
+                    {{-- Password Input Field — copy-on-click dengan tooltip
+                         dynamic ('Copy' / 'Copied'). Pakai pure CSS group-hover
+                         instead of Preline hs-tooltip-shown variant (latter
+                         tidak ke-compile di Tailwind 4 — lihat memory
+                         reference_preline_tooltip_quirk.md). Text dynamic via
+                         Alpine x-text, visibility CSS-driven. --}}
                     <div class="relative mb-2">
-                        <div class="hs-tooltip">
-                            <div class="rounded-lg cursor-pointer sm:flex hs-tooltip-toggle group"
-                                @click="$clipboard(generatedPassword); tooltipText = 'Copied'; setTimeout(() => { tooltipText = 'Copy'; showCopyIcon = true; }, 2000); showCopyIcon = !showCopyIcon">
-                                <input type="text" x-model="generatedPassword" disabled
-                                    class="py-2.5 sm:py-3 px-4 pe-11 block w-full border-gray-200 group-hover:bg-gray-100 transition duration-300 -mt-px -ms-px first:rounded-t-lg last:rounded-b-lg sm:first:rounded-s-lg sm:mt-0 sm:first:ms-0 sm:first:rounded-se-none sm:last:rounded-es-none sm:last:rounded-e-lg sm:text-sm relative focus:z-10 focus:border-blue-500 focus:ring-blue-500 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600">
-                                <span
-                                    class="py-2.5 sm:py-3 px-4 inline-flex items-center min-w-fit w-full border border-gray-200 bg-gray-50 sm:text-sm text-gray-500 -mt-px -ms-px first:rounded-t-lg last:rounded-b-lg sm:w-auto sm:first:rounded-s-lg sm:mt-0 sm:first:ms-0 sm:first:rounded-se-none sm:last:rounded-es-none sm:last:rounded-e-lg dark:bg-neutral-700 dark:border-neutral-700 dark:text-neutral-400">
-                                    <x-lucide-copy
-                                        class="h-5 text-gray-700 transition-all duration-300 group-hover:rotate-12"
-                                        x-bind:class="{ 'hidden': !showCopyIcon }"></x-lucide-copy>
-                                    <x-lucide-check
-                                        class="hidden h-5 transition-all duration-300 text-emerald-600 group-hover:rotate-12"
-                                        x-bind:class="{ 'hidden': showCopyIcon }"></x-lucide-check>
-                                </span>
-                                <span
-                                    class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity bg-gray-900 rounded-md opacity-0 hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible shadow-2xs dark:bg-neutral-700"
-                                    role="tooltip" x-text="tooltipText">
-
-                                </span>
-                            </div>
+                        <div class="rounded-lg cursor-pointer sm:flex group relative"
+                            @click="$clipboard(generatedPassword); tooltipText = 'Copied'; setTimeout(() => { tooltipText = 'Copy'; showCopyIcon = true; }, 2000); showCopyIcon = !showCopyIcon">
+                            <input type="text" x-model="generatedPassword" disabled
+                                class="py-2.5 sm:py-3 px-4 pe-11 block w-full border-gray-200 group-hover:bg-gray-100 transition duration-300 -mt-px -ms-px first:rounded-t-lg last:rounded-b-lg sm:first:rounded-s-lg sm:mt-0 sm:first:ms-0 sm:first:rounded-se-none sm:last:rounded-es-none sm:last:rounded-e-lg sm:text-sm relative focus:z-10 focus:border-emerald-500 focus:ring-emerald-500 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600">
+                            <span
+                                class="py-2.5 sm:py-3 px-4 inline-flex items-center min-w-fit w-full border border-gray-200 bg-gray-50 sm:text-sm text-gray-500 -mt-px -ms-px first:rounded-t-lg last:rounded-b-lg sm:w-auto sm:first:rounded-s-lg sm:mt-0 sm:first:ms-0 sm:first:rounded-se-none sm:last:rounded-es-none sm:last:rounded-e-lg dark:bg-neutral-700 dark:border-neutral-700 dark:text-neutral-400">
+                                <x-lucide-copy
+                                    class="h-5 text-gray-700 transition-all duration-300 group-hover:rotate-12"
+                                    x-bind:class="{ 'hidden': !showCopyIcon }"></x-lucide-copy>
+                                <x-lucide-check
+                                    class="hidden h-5 transition-all duration-300 text-emerald-600 group-hover:rotate-12"
+                                    x-bind:class="{ 'hidden': showCopyIcon }"></x-lucide-check>
+                            </span>
+                            {{-- Tooltip: pure CSS visibility, text dynamic via Alpine.
+                                 Bottom-position so tidak overlap dengan strength bar
+                                 below the input. --}}
+                            <span role="tooltip"
+                                class="pointer-events-none absolute z-50 -top-8 right-2
+                                    px-2 py-1 text-xs font-medium text-white whitespace-nowrap
+                                    bg-gray-900 dark:bg-neutral-700 rounded-md shadow-lg
+                                    opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                                x-text="tooltipText"></span>
                         </div>
                     </div>
 
