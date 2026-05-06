@@ -13,7 +13,7 @@
 
     <select @if($name) id="{{ $name }}" name="{{ $name }}" @endif
         {{ $attributes->merge([
-            'class' => 'py-3 px-4 block w-full border border-gray-300 rounded-md text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-green-700/80 focus:!border-transparent outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100',
+            'class' => 'py-3 px-4 block w-full border border-gray-300 rounded-md text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-emerald-700/80 focus:!border-transparent outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100',
         ]) }}>
         @if ($placeholder)
             <option value="">{{ $placeholder }}</option>

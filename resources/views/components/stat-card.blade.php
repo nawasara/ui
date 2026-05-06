@@ -37,9 +37,9 @@
     // Token mapping konsisten dengan button component.
     $colorTokens = [
         'primary' => [
-            'icon' => 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
-            'ring' => 'border-blue-500 ring-2 ring-blue-100 dark:ring-blue-900/30',
-            'accent' => 'border-l-4 border-l-blue-500 dark:border-l-blue-400',
+            'icon' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+            'ring' => 'border-emerald-600 ring-2 ring-emerald-100 dark:ring-emerald-900/30',
+            'accent' => 'border-l-4 border-l-emerald-600 dark:border-l-emerald-400',
         ],
         'success' => [
             'icon' => 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400',
@@ -99,7 +99,7 @@
         $borderClass,
         $accentClass,
         $hoverClass,
-        $isInteractive ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 dark:focus-visible:ring-offset-neutral-900' : '',
+        $isInteractive ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-600 dark:focus-visible:ring-offset-neutral-900' : '',
     ]));
 
     // Trend arrow + color

@@ -20,7 +20,7 @@
         <input :type="hidePassword ? 'password' : 'text'" {{ $disabled ? 'disabled' : '' }}
             {{ $autofocus ? 'autofocus' : '' }} name="password" id="password" autocomplete="off" {!! $attributes->merge([
                 'class' =>
-                    'py-3 px-4 block w-full border border-gray-300 rounded-md text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-green-700/80 focus:!border-transparent outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100',
+                    'py-3 px-4 block w-full border border-gray-300 rounded-md text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-emerald-700/80 focus:!border-transparent outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100',
             ]) !!}>
 
         <div class="absolute transform -translate-y-1/2 cursor-pointer top-1/2 right-4"
@@ -34,7 +34,7 @@
     <input {{ $disabled ? 'disabled' : '' }} {{ $autofocus ? 'autofocus' : '' }} {!! $attributes->merge([
         'type' => 'text',
         'class' =>
-            'py-3 px-4 block w-full border border-gray-300 rounded-md text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-green-700/80 focus:!border-transparent outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100',
+            'py-3 px-4 block w-full border border-gray-300 rounded-md text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-emerald-700/80 focus:!border-transparent outline-none dark:bg-neutral-900 dark:border-gray-800 text-gray-900 dark:text-neutral-100',
     ]) !!}>
 @endif
 
@@ -75,7 +75,7 @@
                                         class="h-5 text-gray-700 transition-all duration-300 group-hover:rotate-12"
                                         x-bind:class="{ 'hidden': !showCopyIcon }"></x-lucide-copy>
                                     <x-lucide-check
-                                        class="hidden h-5 transition-all duration-300 text-green-500 group-hover:rotate-12"
+                                        class="hidden h-5 transition-all duration-300 text-emerald-600 group-hover:rotate-12"
                                         x-bind:class="{ 'hidden': showCopyIcon }"></x-lucide-check>
                                 </span>
                                 <span
@@ -107,7 +107,7 @@
                         <x-nawasara-ui::form.input label="Password Length" ype="number" min="1"
                             max="18" step="1" x-model="charsLength" @input="generatePassword()" />
                         <input type="range"
-                            class="w-full bg-transparent cursor-pointer appearance-none disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden focus:border-green-500 focus:ring-green-500
+                            class="w-full bg-transparent cursor-pointer appearance-none disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden focus:border-emerald-600 focus:ring-emerald-600
                             [&::-webkit-slider-thumb]:w-2.5
                             [&::-webkit-slider-thumb]:h-2.5
                             [&::-webkit-slider-thumb]:-mt-0.5
@@ -125,7 +125,7 @@
                             [&::-moz-range-thumb]:appearance-none
                             [&::-moz-range-thumb]:bg-white
                             [&::-moz-range-thumb]:border-4
-                            [&::-moz-range-thumb]:border-green-400
+                            [&::-moz-range-thumb]:border-emerald-500
                             [&::-moz-range-thumb]:rounded-full
                             [&::-moz-range-thumb]:transition-all
                             [&::-moz-range-thumb]:duration-150
@@ -148,39 +148,39 @@
                     {{-- Character Type Options --}}
                     <div class="grid gap-2 mt-4 select-none sm:grid-cols-2">
                         <label for="charsLower"
-                            class="flex w-full p-3 text-sm bg-white border border-gray-200 rounded-lg focus:border-green-500 focus:ring-green-500 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400">
+                            class="flex w-full p-3 text-sm bg-white border border-gray-200 rounded-lg focus:border-emerald-600 focus:ring-emerald-600 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400">
                             <input type="checkbox" id="charsLower" x-ref="charsLower" x-model="charsLower"
                                 @input="generatePassword()"
-                                class="w-5 h-5 transition duration-200 text-green-400 form-checkbox rounded-xl focus:border-green-500 focus:ring-green-500"
+                                class="w-5 h-5 transition duration-200 text-emerald-600 form-checkbox rounded-xl focus:border-emerald-600 focus:ring-emerald-600"
                                 id="charsLower" checked>
                             <span
                                 class="text-sm text-gray-500 ms-3 dark:text-neutral-400">{{ __('abcdefghijklmnopqrstuvwxyz') }}</span>
                         </label>
 
                         <label for="charsUpper"
-                            class="flex w-full p-3 text-sm bg-white border border-gray-200 rounded-lg focus:border-green-400 focus:ring-green-400 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400">
+                            class="flex w-full p-3 text-sm bg-white border border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-emerald-500 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400">
                             <input type="checkbox" id="charsUpper" x-ref="charsUpper" x-model="charsUpper"
                                 @input="generatePassword()"
-                                class="w-5 h-5 transition duration-200 text-green-400 form-checkbox rounded-xl focus:border-green-500 focus:ring-green-500"
+                                class="w-5 h-5 transition duration-200 text-emerald-600 form-checkbox rounded-xl focus:border-emerald-600 focus:ring-emerald-600"
                                 id="charsUpper" checked>
                             <span
                                 class="text-sm text-gray-500 ms-3 dark:text-neutral-400">{{ __('ABCDEFGHIJKLMNOPQRSTUVWXYZ') }}</span>
                         </label>
 
                         <label for="charsNumeric"
-                            class="flex w-full p-3 text-sm bg-white border border-gray-200 rounded-lg focus:border-green-500 focus:ring-green-500 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400">
+                            class="flex w-full p-3 text-sm bg-white border border-gray-200 rounded-lg focus:border-emerald-600 focus:ring-emerald-600 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400">
                             <input type="checkbox" id="charsNumeric" x-ref="charsNumeric" x-model="charsNumeric"
                                 @input="generatePassword()"
-                                class="w-5 h-5 transition duration-200 text-green-400 form-checkbox rounded-xl focus:border-green-500 focus:ring-green-500"
+                                class="w-5 h-5 transition duration-200 text-emerald-600 form-checkbox rounded-xl focus:border-emerald-600 focus:ring-emerald-600"
                                 id="charsNumeric" checked>
                             <span class="text-sm text-gray-500 ms-3 dark:text-neutral-400">{{ __('123456789') }}</span>
                         </label>
 
                         <label for="charsSymbols"
-                            class="flex w-full p-3 text-sm bg-white border border-gray-200 rounded-lg focus:border-green-500 focus:ring-green-500 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400">
+                            class="flex w-full p-3 text-sm bg-white border border-gray-200 rounded-lg focus:border-emerald-600 focus:ring-emerald-600 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400">
                             <input type="checkbox" id="charsSymbols" x-ref="charsSymbols" x-model="charsSymbols"
                                 @input="generatePassword()"
-                                class="w-5 h-5 transition duration-200 text-green-400 form-checkbox rounded-xl focus:border-green-500 focus:ring-green-500"
+                                class="w-5 h-5 transition duration-200 text-emerald-600 form-checkbox rounded-xl focus:border-emerald-600 focus:ring-emerald-600"
                                 id="charsSymbols" checked>
                             <span
                                 class="text-sm text-gray-500 ms-3 dark:text-neutral-400">{{ __('~!@#$%^&*_+-=:;?,.') }}</span>

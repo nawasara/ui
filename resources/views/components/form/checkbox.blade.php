@@ -10,7 +10,7 @@
     // Remove wrapper class and input-class from attributes forwarded to input
     $inputAttributes = $attributes->except(['class', 'input-class', 'id']);
 
-    $inputDefaultClasses = 'rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500';
+    $inputDefaultClasses = 'rounded border-gray-300 text-emerald-700 shadow-sm focus:border-emerald-600 focus:ring-emerald-600';
 
     // Generate a safe unique id for the checkbox so label toggles it reliably
     $givenId = $attributes->get('id');

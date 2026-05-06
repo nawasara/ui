@@ -27,7 +27,7 @@
 
 @php
     $colorTokens = [
-        'primary' => 'bg-blue-600',
+        'primary' => 'bg-emerald-700',
         'success' => 'bg-green-600',
         'warning' => 'bg-amber-600',
         'danger' => 'bg-rose-600',
@@ -43,7 +43,7 @@
     $trackClass = trim(implode(' ', [
         'relative inline-flex shrink-0 cursor-pointer rounded-full border-2 border-transparent',
         'transition-colors duration-200 ease-in-out',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-600',
         'dark:focus-visible:ring-offset-neutral-900',
         $dimensions['track'],
         $active ? $activeBg : 'bg-gray-200 dark:bg-neutral-600',

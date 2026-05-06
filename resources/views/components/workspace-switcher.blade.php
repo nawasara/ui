@@ -11,7 +11,7 @@
         @click="open = !open"
         class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium text-gray-800 transition-colors dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-700">
         @if ($current)
-            <x-dynamic-component :component="$current['icon']" class="size-4 text-green-600 dark:text-green-500" />
+            <x-dynamic-component :component="$current['icon']" class="size-4 text-emerald-700 dark:text-emerald-500" />
             <span>{{ $current['label'] }}</span>
         @else
             <x-lucide-layout-grid class="size-4 text-gray-500 dark:text-neutral-400" />
@@ -34,7 +34,7 @@
         {{-- Home link --}}
         <a href="{{ url('/') }}" wire:navigate @click="open = false"
             class="flex items-center gap-3 px-4 py-2.5 text-sm border-b border-gray-100 dark:border-neutral-700
-                {{ ! $current ? 'bg-green-50 text-green-700 font-semibold dark:bg-green-900/20 dark:text-green-400' : 'text-gray-700 hover:bg-gray-50 dark:text-neutral-300 dark:hover:bg-neutral-700' }}">
+                {{ ! $current ? 'bg-emerald-50 text-emerald-800 font-semibold dark:bg-emerald-900/20 dark:text-emerald-400' : 'text-gray-700 hover:bg-gray-50 dark:text-neutral-300 dark:hover:bg-neutral-700' }}">
             <x-lucide-home class="size-4" />
             <span>Home / Dashboard</span>
             @if (! $current)
@@ -62,10 +62,10 @@
                 <a href="{{ $workspace['first_url'] ?? '#' }}" wire:navigate @click="open = false"
                     class="flex items-center gap-3 px-4 py-2.5 text-sm
                         {{ $isActive
-                            ? 'bg-green-50 text-green-700 font-semibold dark:bg-green-900/20 dark:text-green-400'
+                            ? 'bg-emerald-50 text-emerald-800 font-semibold dark:bg-emerald-900/20 dark:text-emerald-400'
                             : 'text-gray-700 hover:bg-gray-50 dark:text-neutral-300 dark:hover:bg-neutral-700' }}">
                     <div class="flex items-center justify-center size-8 rounded-lg
-                        {{ $isActive ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-neutral-700 dark:text-neutral-400' }}">
+                        {{ $isActive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-gray-100 text-gray-500 dark:bg-neutral-700 dark:text-neutral-400' }}">
                         <x-dynamic-component :component="$workspace['icon']" class="size-4" />
                     </div>
                     <div class="flex-1 min-w-0">

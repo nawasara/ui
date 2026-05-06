@@ -12,15 +12,15 @@
 
 <div class="hs-dropdown [--placement:bottom-right] relative inline-flex">
     <button id="hs-dropdown-account" type="button"
-        class="inline-flex items-center gap-2.5 ps-1 pe-2 sm:pe-3 py-1 rounded-full border border-transparent hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:ring-2 focus:ring-green-500/40 transition"
+        class="inline-flex items-center gap-2.5 ps-1 pe-2 sm:pe-3 py-1 rounded-full border border-transparent hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:ring-2 focus:ring-emerald-600/40 transition"
         aria-haspopup="menu" aria-expanded="false" :title="$name">
-        <span class="size-8 inline-flex justify-center items-center text-sm font-semibold rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 shrink-0">
+        <span class="size-8 inline-flex justify-center items-center text-sm font-semibold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 shrink-0">
             {{ $initials ?: '?' }}
         </span>
         <span class="hidden sm:flex flex-col items-start leading-tight min-w-0">
             <span class="text-sm font-semibold text-gray-800 dark:text-neutral-200 truncate max-w-[10rem]">{{ $name }}</span>
             @if ($activeRole)
-                <span class="inline-flex items-center gap-1 text-[11px] text-green-700 dark:text-green-400 font-medium leading-none">
+                <span class="inline-flex items-center gap-1 text-[11px] text-emerald-800 dark:text-emerald-400 font-medium leading-none">
                     <x-lucide-shield-check class="size-3" />
                     {{ $activeRole }}
                 </span>
@@ -39,7 +39,7 @@
         {{-- Profile header --}}
         <div class="px-4 py-3 bg-gray-50 dark:bg-neutral-700/50 border-b border-gray-200 dark:border-neutral-700">
             <div class="flex items-center gap-3">
-                <div class="size-10 inline-flex items-center justify-center rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 font-semibold">
+                <div class="size-10 inline-flex items-center justify-center rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 font-semibold">
                     {{ $initials ?: '?' }}
                 </div>
                 <div class="min-w-0 flex-1">
@@ -53,7 +53,7 @@
             @if (! empty($roleNames))
                 <div class="mt-2 flex items-center gap-1.5 text-xs">
                     @if ($activeRole)
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-medium">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 font-medium">
                             <x-lucide-check class="size-3" />
                             {{ $activeRole }}
                         </span>

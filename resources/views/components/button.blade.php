@@ -36,15 +36,19 @@
     ]);
 
     // varian warna (hardcoded literal agar Tailwind bisa detect)
+    //
+    // Primary = emerald-700 (Nawasara brand color — hijau tua serious, fits
+    // government context). Distinct dari `success` (green-600 → bright happy
+    // green) supaya semantic intent jelas di UI.
     $colors = [
         'primary' => [
-            'solid' => 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600',
+            'solid' => 'bg-emerald-700 hover:bg-emerald-800 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700',
             'outline' =>
-                'border border-blue-600 text-blue-700 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-300 dark:hover:bg-blue-950',
-            'ghost' => 'text-blue-700 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-950',
+                'border border-emerald-700 text-emerald-800 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-300 dark:hover:bg-emerald-950',
+            'ghost' => 'text-emerald-800 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950',
             'flat' =>
-                'bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-950 dark:text-blue-200 dark:hover:bg-blue-900',
-            'link' => 'text-blue-600 hover:underline dark:text-blue-400 p-0 h-auto align-baseline',
+                'bg-emerald-100 text-emerald-900 hover:bg-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:hover:bg-emerald-900',
+            'link' => 'text-emerald-700 hover:underline dark:text-emerald-400 p-0 h-auto align-baseline',
         ],
         'secondary' => [
             'solid' => 'bg-slate-600 hover:bg-slate-700 text-white dark:bg-slate-500 dark:hover:bg-slate-600',
@@ -55,14 +59,16 @@
                 'bg-slate-100 text-slate-800 hover:bg-slate-200 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900',
             'link' => 'text-slate-600 hover:underline dark:text-slate-400 p-0 h-auto align-baseline',
         ],
+        // Success = green-600 (lebih cerah dari primary emerald-700) supaya
+        // visually distinct. "Happy success" feeling vs "serious brand" feeling.
         'success' => [
-            'solid' => 'bg-green-800 hover:bg-green-700 text-white dark:bg-green-800 dark:hover:bg-green-700',
+            'solid' => 'bg-green-600 hover:bg-green-700 text-white dark:bg-green-600 dark:hover:bg-green-700',
             'outline' =>
-                'border border-green-800 text-green-700 hover:bg-green-50 dark:border-green-400 dark:text-green-300 dark:hover:bg-green-950',
+                'border border-green-600 text-green-700 hover:bg-green-50 dark:border-green-400 dark:text-green-300 dark:hover:bg-green-950',
             'ghost' => 'text-green-700 hover:bg-green-50 dark:text-green-300 dark:hover:bg-green-950',
             'flat' =>
                 'bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-950 dark:text-green-200 dark:hover:bg-green-900',
-            'link' => 'text-green-800 hover:underline dark:text-green-400 p-0 h-auto align-baseline',
+            'link' => 'text-green-700 hover:underline dark:text-green-400 p-0 h-auto align-baseline',
         ],
         'warning' => [
             'solid' => 'bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-500 dark:hover:bg-amber-600',

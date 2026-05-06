@@ -36,7 +36,7 @@
 
 @php
     $activeColors = [
-        'primary' => 'bg-blue-600 text-white shadow-sm',
+        'primary' => 'bg-emerald-700 text-white shadow-sm',
         'success' => 'bg-green-600 text-white shadow-sm',
         'warning' => 'bg-amber-600 text-white shadow-sm',
         'danger' => 'bg-rose-600 text-white shadow-sm',
@@ -79,7 +79,7 @@
                 $isActive
                     ? $activeClass
                     : 'text-gray-700 hover:bg-white hover:text-gray-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-neutral-100',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600',
             ]));
         @endphp
         <button type="button"

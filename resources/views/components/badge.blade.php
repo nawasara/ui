@@ -28,10 +28,10 @@
     // Hardcoded literal supaya Tailwind JIT detect.
     $colors = [
         'primary' => [
-            'soft' => 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-            'solid' => 'bg-blue-600 text-white dark:bg-blue-500',
-            'outline' => 'border border-blue-300 text-blue-700 dark:border-blue-700 dark:text-blue-300',
-            'dot' => 'bg-blue-500',
+            'soft' => 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
+            'solid' => 'bg-emerald-700 text-white dark:bg-emerald-600',
+            'outline' => 'border border-emerald-300 text-emerald-800 dark:border-emerald-700 dark:text-emerald-300',
+            'dot' => 'bg-emerald-600',
         ],
         'success' => [
             'soft' => 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400',

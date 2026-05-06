@@ -29,8 +29,8 @@
                 <ul class="space-y-1">
                     <li>
                         <a href="{{ url('/') }}" wire:navigate
-                            class="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-green-600 focus:outline-hidden focus:text-green-600 dark:text-neutral-300 dark:hover:text-green-500">
-                            <x-lucide-home class="shrink-0 size-4 text-green-600 dark:text-green-500" />
+                            class="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-emerald-700 focus:outline-hidden focus:text-emerald-700 dark:text-neutral-300 dark:hover:text-emerald-500">
+                            <x-lucide-home class="shrink-0 size-4 text-emerald-700 dark:text-emerald-500" />
                             Home
                         </a>
                     </li>
@@ -54,7 +54,7 @@
                             <li>
                                 <div class="mb-1 flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-neutral-300">
                                     @if (! empty($menu['icon']))
-                                        <x-dynamic-component :component="$menu['icon']" class="size-4 text-green-600 dark:text-green-500" />
+                                        <x-dynamic-component :component="$menu['icon']" class="size-4 text-emerald-700 dark:text-emerald-500" />
                                     @endif
                                     {{ $menu['label'] }}
                                 </div>
@@ -67,8 +67,8 @@
                                                     @isset($submenu['navigate']) @if ($submenu['navigate']) wire:navigate.hover @endif  @endisset)
                                                     @class([
                                                         'flex items-center gap-2 px-4 py-1.5 text-sm rounded-none border-l-3 transition',
-                                                        'border-transparent text-gray-700 dark:text-gray-300 hover:border-green-600 hover:text-green-700 dark:hover:text-gray-100' => !$isActive,
-                                                        'border-green-600 text-green-700 dark:text-green-400 font-semibold' => $isActive,
+                                                        'border-transparent text-gray-700 dark:text-gray-300 hover:border-emerald-700 hover:text-emerald-800 dark:hover:text-gray-100' => !$isActive,
+                                                        'border-emerald-700 text-emerald-800 dark:text-emerald-400 font-semibold' => $isActive,
                                                     ])>
                                                     @if (!empty($submenu['icon']))
                                                         <i class="{{ $submenu['icon'] }} text-base"></i>
@@ -85,8 +85,8 @@
                             <li>
                                 <a href="{{ url($menu['url']) }}" @class([
                                     'flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-none border-l-3 transition',
-                                    'border-transparent text-gray-700 dark:text-gray-300 hover:border-green-600 hover:text-green-700 dark:hover:text-gray-100' => !$isActive,
-                                    'border-green-600 text-green-700 dark:text-green-400 font-semibold' => $isActive,
+                                    'border-transparent text-gray-700 dark:text-gray-300 hover:border-emerald-700 hover:text-emerald-800 dark:hover:text-gray-100' => !$isActive,
+                                    'border-emerald-700 text-emerald-800 dark:text-emerald-400 font-semibold' => $isActive,
                                 ])>
                                     @if (!empty($menu['icon']))
                                         <i class="{{ $menu['icon'] }} text-base"></i>

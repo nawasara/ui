@@ -26,7 +26,7 @@
 
 @php
     $activeColors = [
-        'primary' => 'border-blue-600 text-blue-600 dark:text-blue-400',
+        'primary' => 'border-emerald-700 text-emerald-700 dark:text-emerald-400',
         'success' => 'border-green-600 text-green-600 dark:text-green-400',
         'warning' => 'border-amber-600 text-amber-600 dark:text-amber-400',
         'danger' => 'border-rose-600 text-rose-600 dark:text-rose-400',
