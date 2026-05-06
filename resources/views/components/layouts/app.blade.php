@@ -25,12 +25,45 @@
 </head>
 
     @php
-        $inWorkspace = app('nawasara.workspaces')->current() !== null;
+        $workspaces = app('nawasara.workspaces');
+        $currentWorkspace = $workspaces->current();
+        $inWorkspace = $currentWorkspace !== null;
+
+        // Auto-generated breadcrumb: kalau page tidak define <x-slot name="breadcrumb">
+        // dan user lagi di dalam workspace, derive breadcrumb dari workspace name +
+        // active submenu label. Tujuannya supaya tiap page tidak harus declare slot
+        // satu-satu — pattern repetitif yang gampang miss saat tambah page baru.
+        //
+        // Detection: cocokkan request path dengan submenu URL (longest match wins).
+        $autoBreadcrumbItems = null;
+        if ($inWorkspace) {
+            $autoBreadcrumbItems = [['label' => $currentWorkspace['label'], 'url' => $currentWorkspace['first_url'] ?? '#']];
+
+            $currentPath = trim(request()->path(), '/');
+            $bestSubmenu = null;
+            $bestLength = 0;
+            foreach ($currentWorkspace['menu']['submenu'] ?? [] as $sub) {
+                if (empty($sub['url'])) continue;
+                $subPath = trim((string) parse_url($sub['url'], PHP_URL_PATH), '/');
+                if ($subPath !== '' && str_starts_with($currentPath, $subPath) && strlen($subPath) > $bestLength) {
+                    $bestSubmenu = $sub;
+                    $bestLength = strlen($subPath);
+                }
+            }
+
+            if ($bestSubmenu) {
+                $autoBreadcrumbItems[] = ['label' => $bestSubmenu['label']];
+            }
+        }
     @endphp
 
 <body x-data class="bg-gray-50 dark:bg-neutral-900">
     <livewire:nawasara-ui.shared-components.topbar />
-    {{ $breadcrumb ?? '' }}
+    @isset($breadcrumb)
+        {{ $breadcrumb }}
+    @elseif ($autoBreadcrumbItems)
+        <livewire:nawasara-ui.shared-components.breadcrumb :items="$autoBreadcrumbItems" />
+    @endif
 
     @if ($inWorkspace)
         <livewire:nawasara-ui.shared-components.sidebar />
