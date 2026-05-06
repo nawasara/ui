@@ -1,9 +1,8 @@
 {{--
     Tooltip — wrap any element to add a hover-revealed text label.
 
-    Pakai Preline tooltip (`hs-tooltip*` classes) yang sudah tersedia via
-    `@vite` bundle. Tidak perlu init manual — Preline auto-binds saat DOM
-    ready dan saat livewire navigate (lihat init-preline component).
+    Pure CSS via Tailwind group-hover — tidak depend ke Preline JS atau
+    custom variant. Lebih reliable cross-build dan tidak butuh init.
 
     Pemakaian dasar:
         <x-nawasara-ui::tooltip text="Refresh data">
@@ -18,9 +17,12 @@
     Disabled state — kalau text kosong, tooltip tidak render (cuma slot
     di-passthrough). Kasih conditional kalau label dynamic.
 
+    Keyboard accessibility: gunakan group-focus-within selain group-hover,
+    supaya tooltip muncul juga saat user tab ke trigger element.
+
     Note: Tooltip tidak boleh dipakai di mobile-only flows — hover tidak
-    available di touch. Untuk tablet+, tooltip baru muncul setelah hover
-    delay ~200ms (Preline default).
+    available di touch. Untuk tablet+, tooltip muncul instan (tidak ada
+    hover delay) tapi opacity transition kasih halus visual.
 --}}
 @props([
     'text' => '',
@@ -32,28 +34,25 @@
     {{ $slot }}
 @else
 @php
-    // Preline placement classes — pakai data-placement attribute supaya
-    // Popper.js kalkulasi posisi otomatis (avoid clipping di edge layar).
-    $placementMap = [
-        'top' => '[--placement:top]',
-        'bottom' => '[--placement:bottom]',
-        'left' => '[--placement:left]',
-        'right' => '[--placement:right]',
-    ];
-    $placementClass = $placementMap[$placement] ?? $placementMap['top'];
+    // Position classes berdasarkan placement. Pakai absolute positioning
+    // di parent group, dengan inset auto-calculation via flex centering.
+    $positionClass = match ($placement) {
+        'bottom' => 'top-full left-1/2 -translate-x-1/2 mt-2',
+        'left' => 'right-full top-1/2 -translate-y-1/2 mr-2',
+        'right' => 'left-full top-1/2 -translate-y-1/2 ml-2',
+        default => 'bottom-full left-1/2 -translate-x-1/2 mb-2', // top
+    };
 @endphp
-<div class="hs-tooltip inline-block {{ $placementClass }}">
-    <div class="hs-tooltip-toggle inline-block">
-        {{ $slot }}
-        <span
-            class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible
-                opacity-0 invisible transition-opacity inline-block absolute
-                z-50 px-2 py-1 text-xs font-medium text-white whitespace-nowrap
-                bg-gray-900 dark:bg-neutral-700 rounded-md shadow-lg
-                pointer-events-none"
-            role="tooltip">
-            {{ $text }}
-        </span>
-    </div>
-</div>
+<span class="group relative inline-block">
+    {{ $slot }}
+    <span role="tooltip"
+        class="pointer-events-none absolute z-50 px-2 py-1 whitespace-nowrap
+            text-xs font-medium text-white bg-gray-900 dark:bg-neutral-700
+            rounded-md shadow-lg
+            opacity-0 group-hover:opacity-100 group-focus-within:opacity-100
+            transition-opacity duration-150
+            {{ $positionClass }}">
+        {{ $text }}
+    </span>
+</span>
 @endif
