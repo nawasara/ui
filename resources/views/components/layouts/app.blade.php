@@ -72,19 +72,24 @@
     <!-- Content
          Page transition: subtle opacity fade saat wire:navigate triggered.
          Listening ke Livewire navigation events:
-         - `livewire:navigating` → konten lama mulai fade out (opacity-50)
-         - `livewire:navigated` → konten baru muncul fade-in via CSS animation
+         - livewire:navigating -> konten lama mulai fade out (opacity-50)
+         - livewire:navigated  -> konten baru muncul fade-in via CSS animation
 
          Pure CSS opacity transition (no layout shift) — kompositor-only,
          tidak block render. Durasi ringan 150ms — kurang dari itu user tidak
          notice, lebih dari itu mulai feel sluggish.
 
-         Di-skip kalau `prefers-reduced-motion` set (accessibility). -->
+         Di-skip kalau prefers-reduced-motion set (accessibility).
+
+         Pakai x-on: full syntax (bukan @ shorthand) karena Blade akan
+         menafsirkan @livewire:navigating sebagai @livewire directive dan
+         compile jadi closure call yang fail di runtime ('Too few arguments
+         to function ...'). x-on:event:name aman dari Blade parser. -->
     <div class="w-full {{ $inWorkspace ? 'lg:ps-64' : '' }}">
         <div
             x-data="{ navigating: false }"
-            @livewire:navigating.window="navigating = true"
-            @livewire:navigated.window="navigating = false"
+            x-on:livewire:navigating.window="navigating = true"
+            x-on:livewire:navigated.window="navigating = false"
             x-bind:class="navigating ? 'opacity-50' : 'opacity-100'"
             class="p-4 sm:p-6 space-y-4 sm:space-y-6 transition-opacity duration-150 motion-reduce:transition-none {{ $inWorkspace ? '' : 'max-w-7xl mx-auto' }}">
             {{ $slot }}
