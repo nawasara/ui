@@ -30,6 +30,7 @@
     'trend' => null,         // ['direction' => 'up'|'down'|'flat', 'value' => '12%']
     'trendLabel' => null,    // 'vs minggu lalu'
     'description' => null,   // sub-label di bawah value (opsional)
+    'accent' => false,       // true → tampilkan accent border-left berwarna (premium-look)
 ])
 
 @php
@@ -38,26 +39,32 @@
         'primary' => [
             'icon' => 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
             'ring' => 'border-blue-500 ring-2 ring-blue-100 dark:ring-blue-900/30',
+            'accent' => 'border-l-4 border-l-blue-500 dark:border-l-blue-400',
         ],
         'success' => [
             'icon' => 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400',
             'ring' => 'border-green-500 ring-2 ring-green-100 dark:ring-green-900/30',
+            'accent' => 'border-l-4 border-l-green-500 dark:border-l-green-400',
         ],
         'warning' => [
             'icon' => 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
             'ring' => 'border-amber-500 ring-2 ring-amber-100 dark:ring-amber-900/30',
+            'accent' => 'border-l-4 border-l-amber-500 dark:border-l-amber-400',
         ],
         'danger' => [
             'icon' => 'bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400',
             'ring' => 'border-rose-500 ring-2 ring-rose-100 dark:ring-rose-900/30',
+            'accent' => 'border-l-4 border-l-rose-500 dark:border-l-rose-400',
         ],
         'info' => [
             'icon' => 'bg-cyan-50 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-400',
             'ring' => 'border-cyan-500 ring-2 ring-cyan-100 dark:ring-cyan-900/30',
+            'accent' => 'border-l-4 border-l-cyan-500 dark:border-l-cyan-400',
         ],
         'neutral' => [
             'icon' => 'bg-gray-100 text-gray-600 dark:bg-neutral-700 dark:text-neutral-400',
             'ring' => 'border-gray-500 ring-2 ring-gray-100 dark:ring-gray-900/30',
+            'accent' => 'border-l-4 border-l-gray-500 dark:border-l-neutral-400',
         ],
     ];
     $tokens = $colorTokens[$color] ?? $colorTokens['primary'];
@@ -77,6 +84,11 @@
         ? $tokens['ring']
         : 'border-gray-200 dark:border-neutral-700';
 
+    // Accent left-border (opt-in via `accent` prop) — kasih visual hierarchy
+    // yang lebih kuat tanpa mengorbankan keseragaman card. Cocok untuk hero
+    // stats dashboard dimana 4 card berdampingan.
+    $accentClass = $accent ? $tokens['accent'] : '';
+
     // Hover effect cuma untuk interactive card — mencegah static card terlihat clickable.
     $hoverClass = $isInteractive ? 'hover:shadow-md hover:-translate-y-0.5 transition-all duration-200' : '';
 
@@ -85,6 +97,7 @@
         'bg-white dark:bg-neutral-800',
         'border rounded-xl p-5',
         $borderClass,
+        $accentClass,
         $hoverClass,
         $isInteractive ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 dark:focus-visible:ring-offset-neutral-900' : '',
     ]));
