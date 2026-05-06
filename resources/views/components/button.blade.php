@@ -10,6 +10,14 @@
     'disabled' => false, // disabled state
     'rounded' => 'md', // sm | md | lg | xl | 2xl | full
     'permission' => null,
+    // Auto-disable selama wire action in-flight. Default true: kalau button
+    // punya `wire:click="x"`, kita inject `wire:loading.attr=disabled
+    // wire:target=x` supaya:
+    //   1. user tidak bisa double-click selama action lagi running
+    //   2. tampilan visual otomatis kelihatan disabled (opacity-50)
+    // Set `:autoLoading="false"` kalau action super-cepat (<200ms) — jarang
+    // perlu, default behaviour aman.
+    'autoLoading' => true,
 ])
 
 @php
@@ -117,6 +125,38 @@
 
     // merge classes eksternal
     $classes = trim($base . ' ' . $variantClasses . ' ' . $sizing);
+
+    // Auto-loading: deteksi wire:click value, lalu inject wire:loading.attr +
+    // wire:target supaya consumer tidak perlu nulis duplicate target spec.
+    //
+    // Skip kalau:
+    //   - autoLoading=false (opt-out)
+    //   - tidak ada wire:click (tombol non-Livewire)
+    //   - consumer sudah eksplisit kasih wire:loading.attr (jangan stomp)
+    $wireClickValue = $attributes->wire('click')->value();
+    $hasManualLoadingAttr = $attributes->whereStartsWith('wire:loading.attr')->isNotEmpty();
+    $shouldAutoLoad = $autoLoading && $wireClickValue !== null && ! $hasManualLoadingAttr;
+
+    if ($shouldAutoLoad) {
+        // wire:target butuh nama action saja, tanpa argumen.
+        // Ekstrak: "refreshUsers" dari "refreshUsers", atau "openDetail(123)"
+        // -> "openDetail". Pakai parantheses sebagai delimiter.
+        $target = trim(explode('(', (string) $wireClickValue, 2)[0]);
+
+        // Skip Livewire pseudo-actions yang bukan method real:
+        //   $dispatch / $emit / $set / $refresh / $toggle — itu tidak bisa
+        //   jadi wire:target. Konsekuensinya: button dispatch event tidak
+        //   auto-disabled, tapi event dispatch sub-millisecond jadi tidak
+        //   ada user-perceivable race condition.
+        $isPseudo = str_starts_with($target, '$');
+
+        if ($target !== '' && ! $isPseudo) {
+            $attributes = $attributes->merge([
+                'wire:loading.attr' => 'disabled',
+                'wire:target' => $target,
+            ]);
+        }
+    }
 @endphp
 
 @if (is_null($permission))

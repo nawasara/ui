@@ -1,10 +1,13 @@
 @props(['id', 'items' => [], 'modalName' => null])
 
 <div class="hs-dropdown [--placement:bottom-right] relative inline-flex">
-    {{-- Toggle: vertical dots --}}
-    <button type="button"
+    {{-- Toggle: vertical dots — title attribute kasih native tooltip
+         (browser-rendered, accessible). Pakai native title vs custom
+         tooltip component karena dropdown trigger di kondisi closed
+         tidak conflict dengan dropdown-menu yang akan render. --}}
+    <button type="button" title="More actions"
         class="hs-dropdown-toggle size-8 inline-flex justify-center items-center rounded-lg border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:focus:bg-neutral-700 transition-colors"
-        aria-haspopup="menu" aria-expanded="false">
+        aria-haspopup="menu" aria-expanded="false" aria-label="More actions">
         <svg class="size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="5" r="1" />

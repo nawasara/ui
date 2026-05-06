@@ -69,9 +69,24 @@
         <livewire:nawasara-ui.shared-components.sidebar />
     @endif
 
-    <!-- Content -->
+    <!-- Content
+         Page transition: subtle opacity fade saat wire:navigate triggered.
+         Listening ke Livewire navigation events:
+         - `livewire:navigating` → konten lama mulai fade out (opacity-50)
+         - `livewire:navigated` → konten baru muncul fade-in via CSS animation
+
+         Pure CSS opacity transition (no layout shift) — kompositor-only,
+         tidak block render. Durasi ringan 150ms — kurang dari itu user tidak
+         notice, lebih dari itu mulai feel sluggish.
+
+         Di-skip kalau `prefers-reduced-motion` set (accessibility). -->
     <div class="w-full {{ $inWorkspace ? 'lg:ps-64' : '' }}">
-        <div class="p-4 sm:p-6 space-y-4 sm:space-y-6 {{ $inWorkspace ? '' : 'max-w-7xl mx-auto' }}">
+        <div
+            x-data="{ navigating: false }"
+            @livewire:navigating.window="navigating = true"
+            @livewire:navigated.window="navigating = false"
+            x-bind:class="navigating ? 'opacity-50' : 'opacity-100'"
+            class="p-4 sm:p-6 space-y-4 sm:space-y-6 transition-opacity duration-150 motion-reduce:transition-none {{ $inWorkspace ? '' : 'max-w-7xl mx-auto' }}">
             {{ $slot }}
         </div>
     </div>

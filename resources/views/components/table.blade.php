@@ -54,7 +54,10 @@
                                     @endforeach
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
+                            {{-- Row hover state: subtle gray background + transition.
+                                 Pakai child selector [&>tr] supaya berlaku ke semua direct
+                                 child <tr> tanpa perlu setiap row tambah class hover. --}}
+                            <tbody class="divide-y divide-gray-200 dark:divide-neutral-700 [&>tr]:transition-colors [&>tr]:hover:bg-gray-50 dark:[&>tr]:hover:bg-neutral-700/40">
                                 {{ $table ?? '' }}
                             </tbody>
                         </table>
