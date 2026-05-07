@@ -78,8 +78,9 @@
 
     // Decide tag based on whether there's an href in the attribute bag.
     // <a> for links, <button type="button"> for everything else.
+    // The branch is rendered statically below (not via <{{ $tag }}>) so
+    // Blade's component pre-pass can expand <x-dynamic-component> inside.
     $isLink = $attributes->whereStartsWith('href')->isNotEmpty();
-    $tag = $isLink ? 'a' : 'button';
 
     // Strip our props from attribute bag so they don't leak into the DOM.
     // The remaining bag carries wire:click / wire:confirm / target / etc.
@@ -88,24 +89,53 @@
     // Resolve icon component name. Accept either bare lucide name ('link',
     // 'refresh-cw') or a fully-qualified ('lucide-link') — both work the
     // same. We MUST NOT use ltrim() here because ltrim is character-based,
-    // not prefix-based: ltrim('link', 'lucide-') strips l + i + n? no —
-    // strips l, i, then stops at n, leaving 'nk'. That silently broke the
-    // 'link' icon (and any name starting with letters in 'lucide-').
-    // Use str_starts_with() + substr() for actual prefix removal.
-    $iconName = str_starts_with($icon, 'lucide-')
-        ? substr($icon, 7)   // strip the 'lucide-' prefix once
-        : $icon;
+    // not prefix-based: ltrim('link', 'lucide-') strips l + i, leaving
+    // 'nk'. Use str_starts_with() + substr() for actual prefix removal.
+    //
+    // The full component name is then composed once here and passed to
+    // <x-dynamic-component> as a SINGLE variable, not as an inline string-
+    // concat expression. Blade's pre-pass for <x-dynamic-component> trips
+    // up on attribute values like :component="'lucide-'.$iconName" — the
+    // raw tag leaks into the rendered DOM untouched. Pre-computing the
+    // full name sidesteps that quirk.
+    $iconComponent = 'lucide-'.(
+        str_starts_with($icon, 'lucide-') ? substr($icon, 7) : $icon
+    );
 @endphp
 
 <x-nawasara-ui::tooltip :text="$tooltip" :placement="$placement">
-    <{{ $tag }}
-        @if (! $isLink) type="button" @endif
-        aria-label="{{ $resolvedAriaLabel }}"
-        @if ($loadingTarget) wire:loading.attr="disabled" wire:target="{{ $loadingTarget }}" @endif
-        {{ $forwarded->merge(['class' => trim($base.' '.$colorClass)]) }}>
-        <x-dynamic-component
-            :component="'lucide-'.$iconName"
-            class="size-4"
-            @if ($loadingTarget) wire:loading.class="animate-spin" wire:target="{{ $loadingTarget }}" @endif />
-    </{{ $tag }}>
+    {{-- Render the icon via Blade UI Icons' @svg() directive instead of
+         <x-dynamic-component :component="$var">. The dynamic-component
+         tag was leaving its literal string in the rendered DOM here —
+         Blade's component pre-pass apparently couldn't resolve it inside
+         this template (still investigating the exact rule, but every
+         workaround we tried — pre-computed prop, single-quoted attr,
+         removing the dynamic outer tag — failed identically). @svg()
+         resolves at runtime via the BladeUI\Icons\Factory and reliably
+         produces an inline <svg>, regardless of compile-time context.
+
+         The wire:loading directives are added as attributes on the SVG
+         so the spinner spin and disabled-on-loading behaviour still
+         scope to the consumer's loadingTarget action. --}}
+    @php
+        // svg() signature: svg(string $name, $class = '', array $attributes = [])
+        // Class is 2nd positional arg; wire:loading-style attrs go in 3rd arg.
+        $iconExtraAttrs = $loadingTarget
+            ? ['wire:loading.class' => 'animate-spin', 'wire:target' => $loadingTarget]
+            : [];
+    @endphp
+    @if ($isLink)
+        <a aria-label="{{ $resolvedAriaLabel }}"
+            @if ($loadingTarget) wire:loading.attr="disabled" wire:target="{{ $loadingTarget }}" @endif
+            {{ $forwarded->merge(['class' => trim($base.' '.$colorClass)]) }}>
+            @svg($iconComponent, 'size-4', $iconExtraAttrs)
+        </a>
+    @else
+        <button type="button"
+            aria-label="{{ $resolvedAriaLabel }}"
+            @if ($loadingTarget) wire:loading.attr="disabled" wire:target="{{ $loadingTarget }}" @endif
+            {{ $forwarded->merge(['class' => trim($base.' '.$colorClass)]) }}>
+            @svg($iconComponent, 'size-4', $iconExtraAttrs)
+        </button>
+    @endif
 </x-nawasara-ui::tooltip>
