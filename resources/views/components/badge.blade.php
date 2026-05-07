@@ -14,7 +14,13 @@
         outline        — border-X-300 + text-X-700, mid-emphasis
 
     Color tokens:
-        primary | success | warning | danger | info | neutral
+        Semantic:    primary | success | warning | danger | info | neutral
+        Categorical: blue | indigo | purple | pink | teal | orange | red
+
+    Use semantic tokens for state ('success' for active, 'danger' for failed)
+    so a global theme tweak only edits one place. Use categorical tokens for
+    pure category labels where Active/Failed semantics don't apply (e.g. DNS
+    record types A/AAAA/CNAME/MX/TXT — they're just buckets, not states).
 --}}
 @props([
     'color' => 'neutral',
@@ -62,6 +68,54 @@
             'solid' => 'bg-gray-600 text-white dark:bg-neutral-500',
             'outline' => 'border border-gray-300 text-gray-700 dark:border-neutral-600 dark:text-neutral-300',
             'dot' => 'bg-gray-400',
+        ],
+        // Categorical tokens — for non-state buckets like DNS record types,
+        // event categories, OPD assignment chips. Use semantic tokens above
+        // for status-like meaning so theme tweaks stay centralised.
+        'blue' => [
+            'soft' => 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+            'solid' => 'bg-blue-600 text-white dark:bg-blue-500',
+            'outline' => 'border border-blue-300 text-blue-700 dark:border-blue-700 dark:text-blue-300',
+            'dot' => 'bg-blue-500',
+        ],
+        'indigo' => [
+            'soft' => 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+            'solid' => 'bg-indigo-600 text-white dark:bg-indigo-500',
+            'outline' => 'border border-indigo-300 text-indigo-700 dark:border-indigo-700 dark:text-indigo-300',
+            'dot' => 'bg-indigo-500',
+        ],
+        'purple' => [
+            'soft' => 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+            'solid' => 'bg-purple-600 text-white dark:bg-purple-500',
+            'outline' => 'border border-purple-300 text-purple-700 dark:border-purple-700 dark:text-purple-300',
+            'dot' => 'bg-purple-500',
+        ],
+        'pink' => [
+            'soft' => 'bg-pink-50 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400',
+            'solid' => 'bg-pink-600 text-white dark:bg-pink-500',
+            'outline' => 'border border-pink-300 text-pink-700 dark:border-pink-700 dark:text-pink-300',
+            'dot' => 'bg-pink-500',
+        ],
+        'teal' => [
+            'soft' => 'bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
+            'solid' => 'bg-teal-600 text-white dark:bg-teal-500',
+            'outline' => 'border border-teal-300 text-teal-700 dark:border-teal-700 dark:text-teal-300',
+            'dot' => 'bg-teal-500',
+        ],
+        'orange' => [
+            'soft' => 'bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+            'solid' => 'bg-orange-600 text-white dark:bg-orange-500',
+            'outline' => 'border border-orange-300 text-orange-700 dark:border-orange-700 dark:text-orange-300',
+            'dot' => 'bg-orange-500',
+        ],
+        // 'red' is an alias for 'danger' so consumers can stay literal when
+        // the bucket really is "alert" not "system error". Kept separate so
+        // future divergence (e.g. red-600 vs rose-600) is one-line easy.
+        'red' => [
+            'soft' => 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+            'solid' => 'bg-red-600 text-white dark:bg-red-500',
+            'outline' => 'border border-red-300 text-red-700 dark:border-red-700 dark:text-red-300',
+            'dot' => 'bg-red-500',
         ],
     ];
 
