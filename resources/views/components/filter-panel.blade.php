@@ -63,12 +63,18 @@
     class="contents">
 
     {{-- Trigger button: Filter (n) ▾ with dirty dot indicator --}}
-    {{-- Default Preline behaviour: close on outside click, stay open on inside
-         click (Preline explicitly skips auto-close when click target is a
-         button/input/select/etc, so option clicks don't close the panel).
-         Outside click triggers hide.hs.dropdown → onPanelClose() → applyNow()
-         flush. Matches the spec: panel close = user is done selecting. --}}
-    <div class="hs-dropdown relative inline-flex"
+    {{-- Auto-close strategy:
+         - Preline's [--auto-close:false] turns OFF its built-in auto-close
+           because in 3.2.3 the option-click filter is unreliable - any click
+           inside the menu was closing the panel even on <button> options.
+         - We replace it with our own idle-timer: 3s of no interaction inside
+           the panel triggers close. Reset on click/mouseenter/keydown.
+         - Outside click: handled explicitly via x-on:click.outside (Alpine
+           ignores nested children of the listening element so options inside
+           don't fire it).
+         - Esc key closes (a11y).
+         - Both close paths fire hide.hs.dropdown → onPanelClose() → flush. --}}
+    <div class="hs-dropdown relative inline-flex [--auto-close:false]"
          x-on:hide.hs.dropdown="onPanelClose()">
         <button id="{{ $id }}-toggle" type="button"
             class="hs-dropdown-toggle py-2.5 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border shadow-sm focus:outline-none disabled:opacity-50 disabled:pointer-events-none transition-colors"
@@ -93,9 +99,22 @@
 
         {{-- Cascading panel: left = dimension list, right = value picker.
              Width fixed (left 14rem + right 16rem = 30rem) so layout is
-             stable regardless of which dimension is active. --}}
+             stable regardless of which dimension is active.
+
+             Interactivity hooks:
+             - x-on:click / mouseenter / keydown / mousemove → bumpIdle() resets
+               the 3s idle-close timer.
+             - x-on:click.outside → close panel (Alpine ignores nested children).
+             - x-on:keydown.escape.window → close (a11y). --}}
         <div class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden z-50 mt-2 bg-white shadow-xl rounded-xl border border-gray-200 dark:bg-neutral-800 dark:border-neutral-700 overflow-hidden"
-            role="menu" aria-orientation="vertical" aria-labelledby="{{ $id }}-toggle">
+            role="menu" aria-orientation="vertical" aria-labelledby="{{ $id }}-toggle"
+            x-on:click="bumpIdle()"
+            x-on:mouseenter="bumpIdle()"
+            x-on:mousemove.throttle.500ms="bumpIdle()"
+            x-on:keydown="bumpIdle()"
+            x-on:mouseleave="bumpIdle()"
+            x-on:click.outside="closePanel('#{{ $id }}-toggle')"
+            x-on:keydown.escape.window="closePanel('#{{ $id }}-toggle')">
 
             <div class="flex" style="max-height: 480px; width: 30rem;">
                 {{-- Left: dimensions (rendered by filter-group children) --}}
@@ -167,7 +186,7 @@
                 </button>
                 <span x-show="!hasActive" class="text-xs text-gray-400 dark:text-neutral-500">&nbsp;</span>
 
-                <button type="button" x-on:click="applyNow(); HSDropdown.getInstance(`#{{ $id }}-toggle`)?.close()"
+                <button type="button" x-on:click="applyNow(); closePanel('#{{ $id }}-toggle')"
                     x-show="isDirty" x-cloak
                     class="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">
                     <x-lucide-check class="size-3.5" />
@@ -226,10 +245,10 @@
                     lastFlushed: {},
 
                     // UI state
-                    activeDim: null,      // currently selected dimension object {model,label,items}
-                    hoverDim: null,       // hover preview (not yet committed)
+                    activeDim: null,      // currently selected dimension model key (string)
                     optionSearch: '',
-                    timerId: null,
+                    timerId: null,        // server-flush debounce timer
+                    idleTimerId: null,    // panel idle-close timer
                     dimensions_: [],      // populated by registerDimension() from filter-group children
 
                     init() {
@@ -238,6 +257,16 @@
                             this.state[model] = this.normaliseToArray(value);
                             this.lastFlushed[model] = [...this.state[model]];
                         }
+                        // Listen for the dropdown opening so we can start the idle timer.
+                        // Preline dispatches 'open.hs.dropdown' on the dropdown root;
+                        // we attach via DOM listener because Alpine x-on doesn't catch
+                        // events on the same element when wire:ignore is in effect.
+                        this.$nextTick(() => {
+                            const root = this.$el.querySelector('.hs-dropdown');
+                            if (root) {
+                                root.addEventListener('open.hs.dropdown', () => this.bumpIdle());
+                            }
+                        });
                     },
 
                     normaliseToArray(value) {
@@ -417,8 +446,39 @@
                         }
                     },
 
+                    // Idle-close: 3s of no interaction inside the panel auto-closes
+                    // it. Reset (bumped) on click/hover/keypress events bound to the
+                    // menu element. Cleared on panel close so it doesn't fire again.
+                    bumpIdle() {
+                        if (this.idleTimerId) clearTimeout(this.idleTimerId);
+                        this.idleTimerId = setTimeout(() => {
+                            // Find the toggle button via the dropdown root + close it.
+                            // Preline's HSDropdown.getInstance() needs the toggle id.
+                            const root = this.$el.querySelector('.hs-dropdown');
+                            const toggle = root?.querySelector('.hs-dropdown-toggle');
+                            if (toggle && window.HSDropdown) {
+                                window.HSDropdown.getInstance('#' + toggle.id)?.close();
+                            }
+                        }, this.debounceMs);
+                    },
+
+                    closePanel(toggleSelector) {
+                        if (this.idleTimerId) {
+                            clearTimeout(this.idleTimerId);
+                            this.idleTimerId = null;
+                        }
+                        if (window.HSDropdown) {
+                            window.HSDropdown.getInstance(toggleSelector)?.close();
+                        }
+                    },
+
                     onPanelClose() {
-                        // Force flush on panel close per spec
+                        // Stop the idle timer so it doesn't fire on a closed panel
+                        if (this.idleTimerId) {
+                            clearTimeout(this.idleTimerId);
+                            this.idleTimerId = null;
+                        }
+                        // Force flush any pending changes immediately
                         this.applyNow();
                     },
 
