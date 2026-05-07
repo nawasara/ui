@@ -179,7 +179,7 @@
                 </button>
                 <span x-show="!hasActive" class="text-xs text-gray-400 dark:text-neutral-500">&nbsp;</span>
 
-                <button type="button" x-on:click="applyNow(); closePanel('#{{ $id }}-toggle')"
+                <button type="button" x-on:click="applyNow(); closePanel()"
                     x-show="isDirty" x-cloak
                     class="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">
                     <x-lucide-check class="size-3.5" />
@@ -255,8 +255,6 @@
                         // dropdown DOM is not ready (Livewire/Preline timing), retry on
                         // a short interval until found, with a hard cap.
                         const wire = (root, menu) => {
-                            console.log('[filter-panel] wiring listeners', { root, menu });
-
                             // Bump idle timer on any user interaction inside the menu.
                             const bump = () => this.bumpIdle();
                             menu.addEventListener('click', bump);
@@ -270,12 +268,7 @@
                             });
 
                             // Start (or reset) the idle timer when Preline opens the panel.
-                            // Listen for both Preline's custom event and a class-mutation
-                            // observer as fallback (Preline 3.2.3 dispatches inconsistently).
-                            root.addEventListener('open.hs.dropdown', () => {
-                                console.log('[filter-panel] open.hs.dropdown fired, bumping idle');
-                                bump();
-                            });
+                            root.addEventListener('open.hs.dropdown', bump);
 
                             // Class-mutation observer as a backup signal: when the root
                             // gains class 'open', start the idle timer; when it loses
@@ -283,12 +276,8 @@
                             // class without firing the event for some reason.
                             const observer = new MutationObserver(() => {
                                 if (root.classList.contains('open')) {
-                                    if (!this.idleTimerId) {
-                                        console.log('[filter-panel] panel opened (observer), starting idle');
-                                        bump();
-                                    }
+                                    if (!this.idleTimerId) bump();
                                 } else if (this.idleTimerId) {
-                                    console.log('[filter-panel] panel closed (observer), clearing idle');
                                     clearTimeout(this.idleTimerId);
                                     this.idleTimerId = null;
                                 }
@@ -300,9 +289,7 @@
                             this._outsideClickHandler = (e) => {
                                 if (!root.classList.contains('open')) return;
                                 if (root.contains(e.target)) return;
-                                console.log('[filter-panel] outside click → close');
-                                const toggle = root.querySelector('.hs-dropdown-toggle');
-                                if (toggle) this.closePanel('#' + toggle.id);
+                                this.closePanel();
                             };
                             document.addEventListener('click', this._outsideClickHandler, true);
 
@@ -310,9 +297,7 @@
                             this._escHandler = (e) => {
                                 if (e.key !== 'Escape') return;
                                 if (!root.classList.contains('open')) return;
-                                console.log('[filter-panel] esc → close');
-                                const toggle = root.querySelector('.hs-dropdown-toggle');
-                                if (toggle) this.closePanel('#' + toggle.id);
+                                this.closePanel();
                             };
                             document.addEventListener('keydown', this._escHandler);
                         };
@@ -321,10 +306,7 @@
                             const root = this.$el.querySelector('.hs-dropdown');
                             const menu = this.$el.querySelector('[data-fp-menu]');
                             if (root && menu) { wire(root, menu); return; }
-                            if (attempt > 20) {
-                                console.warn('[filter-panel] gave up wiring after 20 attempts', { root, menu, $el: this.$el });
-                                return;
-                            }
+                            if (attempt > 20) return;
                             setTimeout(() => tryWire(attempt + 1), 50);
                         };
                         this.$nextTick(() => tryWire());
@@ -525,31 +507,40 @@
                     // menu element. Cleared on panel close so it doesn't fire again.
                     bumpIdle() {
                         if (this.idleTimerId) clearTimeout(this.idleTimerId);
-                        console.log('[filter-panel] bumpIdle (close in', this.debounceMs, 'ms)');
                         this.idleTimerId = setTimeout(() => {
-                            console.log('[filter-panel] idle timer fired → close');
-                            const root = this.$el.querySelector('.hs-dropdown');
-                            const toggle = root?.querySelector('.hs-dropdown-toggle');
-                            if (toggle && window.HSDropdown) {
-                                window.HSDropdown.getInstance('#' + toggle.id)?.close();
-                            } else {
-                                console.warn('[filter-panel] cannot close: HSDropdown or toggle missing', { toggle, HSDropdown: window.HSDropdown });
-                            }
+                            this._closeDropdown();
                         }, this.debounceMs);
                     },
 
-                    closePanel(toggleSelector) {
-                        console.log('[filter-panel] closePanel called', toggleSelector);
+                    closePanel() {
                         if (this.idleTimerId) {
                             clearTimeout(this.idleTimerId);
                             this.idleTimerId = null;
                         }
+                        this._closeDropdown();
+                    },
+
+                    // Internal: close the Preline dropdown. HSDropdown.getInstance()
+                    // lookup is done with the ROOT element (the .hs-dropdown div),
+                    // not the toggle button id - the latter returns null because
+                    // Preline's collection is keyed by root element.
+                    _closeDropdown() {
+                        const root = this.$el.querySelector('.hs-dropdown');
+                        if (!root) return;
                         if (window.HSDropdown) {
-                            const inst = window.HSDropdown.getInstance(toggleSelector);
-                            console.log('[filter-panel] HSDropdown instance', inst);
-                            inst?.close();
-                        } else {
-                            console.warn('[filter-panel] HSDropdown not available');
+                            const inst = window.HSDropdown.getInstance(root);
+                            if (inst) {
+                                inst.close();
+                                return;
+                            }
+                        }
+                        // Fallback: directly remove the 'open' class and hide the menu.
+                        // Preline reacts to MutationObserver to clean up positioning.
+                        root.classList.remove('open');
+                        const menu = root.querySelector('.hs-dropdown-menu');
+                        if (menu) {
+                            menu.classList.add('hidden');
+                            menu.classList.remove('opacity-100');
                         }
                     },
 
