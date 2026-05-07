@@ -63,7 +63,12 @@
     class="contents">
 
     {{-- Trigger button: Filter (n) ▾ with dirty dot indicator --}}
-    <div class="hs-dropdown relative inline-flex [--auto-close:false]"
+    {{-- Default Preline behaviour: close on outside click, stay open on inside
+         click (Preline explicitly skips auto-close when click target is a
+         button/input/select/etc, so option clicks don't close the panel).
+         Outside click triggers hide.hs.dropdown → onPanelClose() → applyNow()
+         flush. Matches the spec: panel close = user is done selecting. --}}
+    <div class="hs-dropdown relative inline-flex"
          x-on:hide.hs.dropdown="onPanelClose()">
         <button id="{{ $id }}-toggle" type="button"
             class="hs-dropdown-toggle py-2.5 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border shadow-sm focus:outline-none disabled:opacity-50 disabled:pointer-events-none transition-colors"
