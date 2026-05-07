@@ -47,7 +47,7 @@
 <div
     x-data="filterPanel({
         initial: @js((object) $state),
-        multipleModels: {!! json_encode(array_values($multiple)) !!},
+        multipleModels: @js(array_values($multiple)),
         labels: @js((object) $labels),
         dimensions: @js((object) $dimensions),
         debounceMs: {{ (int) $debounceMs }},
@@ -79,52 +79,59 @@
             </svg>
         </button>
 
-        {{-- Cascading panel: left = dimension list, right = value picker --}}
+        {{-- Cascading panel: left = dimension list, right = value picker.
+             Width fixed (left 14rem + right 16rem = 30rem) so layout is
+             stable regardless of which dimension is active. --}}
         <div class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden z-50 mt-2 bg-white shadow-xl rounded-xl border border-gray-200 dark:bg-neutral-800 dark:border-neutral-700 overflow-hidden"
-            role="menu" aria-orientation="vertical" aria-labelledby="{{ $id }}-toggle"
-            style="min-width: 240px;">
+            role="menu" aria-orientation="vertical" aria-labelledby="{{ $id }}-toggle">
 
-            <div class="flex" style="max-height: 480px;">
+            <div class="flex" style="max-height: 480px; width: 30rem;">
                 {{-- Left: dimensions (rendered by filter-group children) --}}
-                <div class="w-56 border-r border-gray-200 dark:border-neutral-700 overflow-y-auto py-2"
-                     x-on:mouseleave="hoverDim = null">
+                <div class="w-56 shrink-0 border-r border-gray-200 dark:border-neutral-700 overflow-y-auto py-2 bg-white dark:bg-neutral-800">
                     {{ $slot }}
                 </div>
 
-                {{-- Right: value picker for active dimension --}}
-                <div class="w-64 overflow-y-auto py-2"
-                     x-show="activeDim"
-                     x-cloak>
-                    <template x-for="dim in [activeDim]" :key="dim?.model">
-                        <div x-show="dim">
-                            <div class="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-neutral-400"
-                                 x-text="dim?.label"></div>
+                {{-- Right: value picker — always rendered to keep layout stable;
+                     shows placeholder until a dimension is selected/hovered. --}}
+                <div class="flex-1 overflow-y-auto py-2 bg-white dark:bg-neutral-800">
+                    {{-- Placeholder when no dimension active --}}
+                    <div x-show="!activeDim" class="px-4 py-8 text-center">
+                        <div class="text-xs text-gray-400 dark:text-neutral-500">
+                            Pilih kategori filter di sebelah kiri
+                        </div>
+                    </div>
 
-                            {{-- Search inside value list (shown when >7 options) --}}
-                            <div x-show="dim && dim.items && Object.keys(dim.items).length > 7"
+                    {{-- Value picker for active dimension --}}
+                    <template x-if="activeDim">
+                        <div>
+                            <div class="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-neutral-400"
+                                 x-text="activeDim?.label"></div>
+
+                            {{-- Search inside value list (shown when more than 7 options) --}}
+                            <div x-show="activeDim && activeDim.items && Object.keys(activeDim.items).length > 7"
                                  class="px-3 pb-2">
                                 <div class="relative">
                                     <div class="absolute inset-y-0 start-0 flex items-center pointer-events-none ps-2.5">
-                                        <x-lucide-search class="size-3.5 text-gray-400" />
+                                        <x-lucide-search class="size-3.5 text-gray-400 dark:text-neutral-500" />
                                     </div>
                                     <input type="text" x-model="optionSearch"
                                         placeholder="Cari..."
-                                        class="py-1.5 ps-8 pe-2 block w-full border border-gray-200 rounded-md text-xs focus:border-emerald-600 focus:ring-emerald-600 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300" />
+                                        class="py-1.5 ps-8 pe-2 block w-full border border-gray-200 rounded-md text-xs focus:border-emerald-600 focus:ring-emerald-600 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300 dark:placeholder-neutral-500" />
                                 </div>
                             </div>
 
                             <div class="px-1 space-y-0.5">
-                                <template x-for="(text, value) in filteredOptions(dim)" :key="value">
+                                <template x-for="(text, value) in filteredOptions(activeDim)" :key="value">
                                     <button type="button"
-                                        x-on:click="toggle(dim.model, value)"
-                                        class="w-full flex items-center gap-x-2.5 py-1.5 px-2.5 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-neutral-700 transition-colors"
-                                        x-bind:class="isSelected(dim.model, value)
-                                            ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 font-medium'
-                                            : 'text-gray-700 dark:text-neutral-300'">
-                                        <template x-if="isSelected(dim.model, value)">
-                                            <x-lucide-check-circle-2 class="size-4 shrink-0 text-emerald-600" />
+                                        x-on:click="toggle(activeDim.model, value)"
+                                        class="w-full flex items-center gap-x-2.5 py-1.5 px-2.5 rounded-lg text-sm transition-colors"
+                                        x-bind:class="isSelected(activeDim.model, value)
+                                            ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900/50'
+                                            : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-700'">
+                                        <template x-if="isSelected(activeDim.model, value)">
+                                            <x-lucide-check-circle-2 class="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                                         </template>
-                                        <template x-if="!isSelected(dim.model, value)">
+                                        <template x-if="!isSelected(activeDim.model, value)">
                                             <span class="size-4 shrink-0 rounded-full border border-gray-300 dark:border-neutral-600"></span>
                                         </template>
                                         <span x-text="text" class="text-left truncate"></span>
@@ -143,7 +150,7 @@
                     class="text-xs text-gray-500 hover:text-gray-700 dark:text-neutral-400 dark:hover:text-neutral-200 transition-colors">
                     Reset semua
                 </button>
-                <span x-show="!hasActive" class="text-xs text-gray-400">&nbsp;</span>
+                <span x-show="!hasActive" class="text-xs text-gray-400 dark:text-neutral-500">&nbsp;</span>
 
                 <button type="button" x-on:click="applyNow(); HSDropdown.getInstance(`#{{ $id }}-toggle`)?.close()"
                     x-show="isDirty" x-cloak
@@ -238,6 +245,11 @@
                         if (!(dim.model in this.state)) {
                             this.state[dim.model] = [];
                             this.lastFlushed[dim.model] = [];
+                        }
+                        // Auto-select first registered dimension so the value picker
+                        // shows immediately on panel open instead of an empty state.
+                        if (!this.activeDim) {
+                            this.activeDim = dim;
                         }
                     },
 
