@@ -336,14 +336,25 @@
                         const out = [];
                         for (const [model, values] of Object.entries(this.state)) {
                             if (!values || values.length === 0) continue;
-                            const dimLabel = this.dimensions[model] || null;
+                            // Dimension label resolution priority:
+                            //   1. Explicit prop override (this.dimensions[model])
+                            //   2. Registered group label (from filter-group child)
+                            //   3. Model name itself (last-resort fallback)
+                            // Always prefix chip with dimension label so user sees
+                            // 'Type: A' instead of just 'A' (which would be ambiguous
+                            // when multiple dimensions have similar single-char values).
+                            let dimLabel = this.dimensions[model] || null;
+                            if (!dimLabel) {
+                                const reg = this.dimensions_.find(d => d.model === model);
+                                dimLabel = reg?.label || model;
+                            }
                             const labelMap = this.labels[model] || {};
                             for (const v of values) {
                                 const valLabel = labelMap[v] ?? v;
                                 out.push({
                                     model,
                                     value: v,
-                                    label: dimLabel ? `${dimLabel}: ${valLabel}` : valLabel,
+                                    label: `${dimLabel}: ${valLabel}`,
                                 });
                             }
                         }

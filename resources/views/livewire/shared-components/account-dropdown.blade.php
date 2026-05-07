@@ -13,7 +13,7 @@
 <div class="hs-dropdown [--placement:bottom-right] relative inline-flex">
     <button id="hs-dropdown-account" type="button"
         class="inline-flex items-center gap-2.5 ps-1 pe-2 sm:pe-3 py-1 rounded-full border border-transparent hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:ring-2 focus:ring-emerald-600/40 transition"
-        aria-haspopup="menu" aria-expanded="false" :title="$name">
+        aria-haspopup="menu" aria-expanded="false" title="{{ $name }}">
         <span class="size-8 inline-flex justify-center items-center text-sm font-semibold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 shrink-0">
             {{ $initials ?: '?' }}
         </span>
