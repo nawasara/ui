@@ -56,19 +56,19 @@
                 // - selected row (consumer sets bg on <tr>) → consumer must
                 //   also set bg-inherit on the last <td> OR use the matching
                 //   bg colour. We document this in the prop docblock.
-                // z-index assignments are deliberate to avoid sticky cells
-                // clipping popovers spawned from inside them:
-                // - sticky body cells: z-0 (just enough to lift above unscrolled
-                //   content, but BELOW Preline dropdown menus which use z-50).
-                // - sticky header cell: z-10 (above body sticky cells, since
-                //   horizontal scroll body might pass under the header row).
-                // Dropdown menus inside the action column are z-50 (set in
-                // dropdown-menu-action.blade.php) so they always win against
-                // sticky cells of adjacent rows.
+                // z-index strategy:
+                // - Sticky body cells deliberately have NO explicit z-index.
+                //   Setting one (even z-0) creates a new stacking context that
+                //   traps any popover (e.g. dropdown action menu) spawned from
+                //   inside the cell, leaving it clipped by adjacent rows'
+                //   sticky cells. With z=auto, sticky cells DO NOT create a
+                //   stacking context, and the menu's z-50 wins globally.
+                // - Sticky header gets z-20 explicitly: it must overlay body
+                //   cells when horizontal scroll happens, but stays below
+                //   any popovers (dropdown menu = z-50).
                 $bodySticky = $stickyLast ? '
                     [&>tr>td:last-child]:sticky
                     [&>tr>td:last-child]:right-0
-                    [&>tr>td:last-child]:z-0
                     [&>tr>td:last-child]:bg-white
                     dark:[&>tr>td:last-child]:bg-neutral-800
                     [&>tr:hover>td:last-child]:bg-gray-50
@@ -77,7 +77,7 @@
                     dark:[&>tr>td:last-child]:shadow-[-4px_0_6px_-4px_rgb(0_0_0/0.4)]
                 ' : '';
                 $headSticky = $stickyLast ? '
-                    sticky right-0 z-10 bg-gray-50 dark:bg-neutral-800
+                    sticky right-0 z-20 bg-gray-50 dark:bg-neutral-800
                     shadow-[-4px_0_6px_-4px_rgb(0_0_0/0.08)]
                     dark:shadow-[-4px_0_6px_-4px_rgb(0_0_0/0.4)]
                 ' : '';

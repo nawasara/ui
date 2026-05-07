@@ -275,7 +275,6 @@
                     mobileView: 'list',   // 'list' = dimension list, 'values' = value picker (mobile only)
 
                     init() {
-                        console.log('[filter-panel] init() called. config.initial =', JSON.parse(JSON.stringify(config.initial || {})));
                         // Normalise initial state to arrays
                         for (const [model, value] of Object.entries(config.initial || {})) {
                             this.state[model] = this.normaliseToArray(value);
@@ -475,10 +474,7 @@
                     get activeCount() {
                         // Count active dimensions (not values) — "Filter (3)" means
                         // 3 dimensions have at least one selected value
-                        const c = Object.values(this.state).filter(arr => arr && arr.length > 0).length;
-                        // DEBUG: log every time the badge re-evaluates
-                        console.log('[filter-panel] activeCount =', c, 'state =', JSON.parse(JSON.stringify(this.state)));
-                        return c;
+                        return Object.values(this.state).filter(arr => arr && arr.length > 0).length;
                     },
 
                     get isDirty() {
