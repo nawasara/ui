@@ -13,8 +13,12 @@
          (browser-rendered, accessible). Pakai native title vs custom
          tooltip component karena dropdown trigger di kondisi closed
          tidak conflict dengan dropdown-menu yang akan render. --}}
+    {{-- Hover state uses gray-100 / neutral-600 (one step DARKER than the row's
+         hover bg gray-50 / neutral-700/40) so the button stays visually
+         distinct when the row is hovered. Otherwise the button blends into
+         the sticky cell's row-hover bg and looks "missing". --}}
     <button type="button" title="More actions"
-        class="hs-dropdown-toggle size-8 inline-flex justify-center items-center rounded-lg border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:focus:bg-neutral-700 transition-colors"
+        class="hs-dropdown-toggle size-8 inline-flex justify-center items-center rounded-lg border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-100 hover:border-gray-300 focus:outline-none focus:bg-gray-100 disabled:opacity-50 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600 dark:hover:border-neutral-500 dark:focus:bg-neutral-600 transition-colors"
         aria-haspopup="menu" aria-expanded="false" aria-label="More actions">
         <svg class="size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
