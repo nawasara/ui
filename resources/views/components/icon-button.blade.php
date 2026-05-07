@@ -84,6 +84,17 @@
     // Strip our props from attribute bag so they don't leak into the DOM.
     // The remaining bag carries wire:click / wire:confirm / target / etc.
     $forwarded = $attributes->except(['icon', 'tooltip', 'ariaLabel', 'color', 'loadingTarget', 'placement']);
+
+    // Resolve icon component name. Accept either bare lucide name ('link',
+    // 'refresh-cw') or a fully-qualified ('lucide-link') — both work the
+    // same. We MUST NOT use ltrim() here because ltrim is character-based,
+    // not prefix-based: ltrim('link', 'lucide-') strips l + i + n? no —
+    // strips l, i, then stops at n, leaving 'nk'. That silently broke the
+    // 'link' icon (and any name starting with letters in 'lucide-').
+    // Use str_starts_with() + substr() for actual prefix removal.
+    $iconName = str_starts_with($icon, 'lucide-')
+        ? substr($icon, 7)   // strip the 'lucide-' prefix once
+        : $icon;
 @endphp
 
 <x-nawasara-ui::tooltip :text="$tooltip" :placement="$placement">
@@ -93,7 +104,7 @@
         @if ($loadingTarget) wire:loading.attr="disabled" wire:target="{{ $loadingTarget }}" @endif
         {{ $forwarded->merge(['class' => trim($base.' '.$colorClass)]) }}>
         <x-dynamic-component
-            :component="'lucide-'.ltrim($icon, 'lucide-')"
+            :component="'lucide-'.$iconName"
             class="size-4"
             @if ($loadingTarget) wire:loading.class="animate-spin" wire:target="{{ $loadingTarget }}" @endif />
     </{{ $tag }}>
