@@ -293,13 +293,16 @@
                             };
                             document.addEventListener('click', this._outsideClickHandler, true);
 
-                            // Esc closer (a11y).
+                            // Esc closer (a11y). Listen on window in capture phase so
+                            // we beat any handler that calls stopPropagation (Preline
+                            // installs its own keydown handler on the dropdown that
+                            // intercepts Esc when focus is on the toggle).
                             this._escHandler = (e) => {
-                                if (e.key !== 'Escape') return;
+                                if (e.key !== 'Escape' && e.code !== 'Escape' && e.keyCode !== 27) return;
                                 if (!root.classList.contains('open')) return;
                                 this.closePanel();
                             };
-                            document.addEventListener('keydown', this._escHandler);
+                            window.addEventListener('keydown', this._escHandler, true);
                         };
 
                         const tryWire = (attempt = 0) => {
@@ -318,7 +321,7 @@
                             document.removeEventListener('click', this._outsideClickHandler, true);
                         }
                         if (this._escHandler) {
-                            document.removeEventListener('keydown', this._escHandler);
+                            window.removeEventListener('keydown', this._escHandler, true);
                         }
                         if (this._classObserver) {
                             this._classObserver.disconnect();
