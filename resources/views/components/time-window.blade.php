@@ -38,9 +38,11 @@
     ],
     /**
      * Optional inline label rendered before the segmented pills.
-     * Pass null/false to omit. Default 'Periode:'.
+     * Pass null/false to omit. Default null - the segmented control reads
+     * as a "scope" by itself; explicit labels look like form fields and
+     * disrupt the inline-toolbar flow.
      */
-    'label' => 'Periode:',
+    'label' => null,
 ])
 
 {{-- <x-time-window> — segmented preset selector with optional custom range.
@@ -81,7 +83,7 @@
     })"
     wire:ignore.self
     wire:key="{{ $id }}"
-    class="inline-flex items-center gap-2 flex-wrap">
+    class="inline-flex items-center gap-2 shrink-0">
 
     @if ($label)
         <span class="text-xs font-medium text-gray-500 dark:text-neutral-400 shrink-0">
@@ -89,9 +91,10 @@
         </span>
     @endif
 
-    {{-- Segmented pill group. Visually one unit (rounded outer + flat inner
-         borders) with an emerald background on the active pill. Inspired by
-         the reference screenshot (Window: 1h | 24h | 7d). --}}
+    {{-- Segmented pill group. Height (h-10) matches the toolbar's Filter
+         button + search input, so dropping this inline reads as one row.
+         Visually one unit (rounded outer + flat inner borders) with an
+         emerald background on the active pill. --}}
     <div role="group" aria-label="{{ $label ?? 'Periode' }}"
         class="inline-flex items-center rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-sm overflow-hidden">
         @foreach ($presets as $key => $presetLabel)
@@ -101,7 +104,7 @@
                     ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                     : 'bg-transparent text-gray-700 hover:bg-gray-50 dark:text-neutral-300 dark:hover:bg-neutral-700'"
                 x-bind:aria-pressed="active === @js($key)"
-                class="h-8 px-3 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0 border-r border-gray-200 dark:border-neutral-700 last:border-r-0">
+                class="h-10 px-3.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0 border-r border-gray-200 dark:border-neutral-700 last:border-r-0">
                 {{ $presetLabel }}
             </button>
         @endforeach
@@ -116,8 +119,8 @@
                 ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                 : 'bg-transparent text-gray-700 hover:bg-gray-50 dark:text-neutral-300 dark:hover:bg-neutral-700'"
             x-bind:aria-pressed="active === 'custom'"
-            class="h-8 px-3 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 inline-flex items-center gap-1.5 border-l border-gray-200 dark:border-neutral-700">
-            <x-lucide-calendar class="size-3.5" />
+            class="h-10 px-3.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 inline-flex items-center gap-2 border-l border-gray-200 dark:border-neutral-700">
+            <x-lucide-calendar class="size-4" />
             <span x-text="customLabel"></span>
         </button>
     </div>
