@@ -162,14 +162,16 @@
         </div>
     </div>
 
-    {{-- Active filter chips: rendered from Alpine state (instant remove) --}}
+    {{-- Active filter chips: one chip per dimension. Click × clears the whole
+         dimension (all selected values within it). To remove a single value,
+         user re-opens the panel and unchecks the option. --}}
     <template x-if="chips.length > 0">
         <div class="flex flex-wrap items-center gap-2 mt-2 basis-full">
-            <template x-for="chip in chips" :key="chip.model + ':' + chip.value">
-                <span class="inline-flex items-center gap-x-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400">
-                    <span x-text="chip.label"></span>
+            <template x-for="chip in chips" :key="chip.model">
+                <span class="inline-flex items-center gap-x-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 max-w-md">
+                    <span x-text="chip.label" class="truncate" x-bind:title="chip.label"></span>
                     <button type="button"
-                        x-on:click="removeChip(chip.model, chip.value)"
+                        x-on:click="clearDimension(chip.model)"
                         class="shrink-0 size-3.5 inline-flex items-center justify-center rounded-full text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100 focus:outline-none dark:hover:bg-emerald-800 transition-colors">
                         <svg class="size-2.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M18 6 6 18"></path>
@@ -282,10 +284,10 @@
                         this.scheduleFlush();
                     },
 
-                    removeChip(model, value) {
-                        const v = String(value);
-                        this.state[model] = (this.state[model] || []).filter(x => x !== v);
-                        // Chip remove is explicit user action — flush immediately
+                    clearDimension(model) {
+                        // Chip × clears all values in the dimension. Explicit user
+                        // intent, so flush immediately rather than wait for debounce.
+                        this.state[model] = [];
                         this.applyNow();
                     },
 
@@ -333,6 +335,11 @@
                     },
 
                     get chips() {
+                        // One chip per active dimension (not per value). Multi-select
+                        // values within a dimension are joined with ', '. The chip's
+                        // close button clears the WHOLE dimension - to remove a single
+                        // value the user re-opens the panel. This matches the design
+                        // reference and stays compact when many values are selected.
                         const out = [];
                         for (const [model, values] of Object.entries(this.state)) {
                             if (!values || values.length === 0) continue;
@@ -340,23 +347,17 @@
                             //   1. Explicit prop override (this.dimensions[model])
                             //   2. Registered group label (from filter-group child)
                             //   3. Model name itself (last-resort fallback)
-                            // Always prefix chip with dimension label so user sees
-                            // 'Type: A' instead of just 'A' (which would be ambiguous
-                            // when multiple dimensions have similar single-char values).
                             let dimLabel = this.dimensions[model] || null;
                             if (!dimLabel) {
                                 const reg = this.dimensions_.find(d => d.model === model);
                                 dimLabel = reg?.label || model;
                             }
                             const labelMap = this.labels[model] || {};
-                            for (const v of values) {
-                                const valLabel = labelMap[v] ?? v;
-                                out.push({
-                                    model,
-                                    value: v,
-                                    label: `${dimLabel}: ${valLabel}`,
-                                });
-                            }
+                            const valueLabels = values.map(v => labelMap[v] ?? v);
+                            out.push({
+                                model,
+                                label: `${dimLabel}: ${valueLabels.join(', ')}`,
+                            });
                         }
                         return out;
                     },
