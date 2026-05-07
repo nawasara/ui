@@ -27,14 +27,17 @@
     'from' => null,
     'to' => null,
     /**
-     * Optional preset overrides. Default = today / 7d / 30d.
-     * Pass an array of [key => label] to customise. The 'custom' option is
-     * appended automatically.
+     * Optional preset overrides. Default = today / 7d / 30d with short
+     * English labels - keeps the segmented control compact so it fits
+     * cleanly next to a page title even on narrow viewports. Consumers
+     * who want full Indonesian labels can pass:
+     *   :presets="['today' => 'Hari ini', '7d' => '7 hari', '30d' => '30 hari']"
+     * The 'custom' option is appended automatically.
      */
     'presets' => [
-        'today' => 'Hari ini',
-        '7d' => '7 hari',
-        '30d' => '30 hari',
+        'today' => 'today',
+        '7d' => '7d',
+        '30d' => '30d',
     ],
     /**
      * Optional inline label rendered before the segmented pills.
@@ -106,10 +109,11 @@
             aria-hidden="true" />
     @endif
 
-    {{-- Segmented pill group. Height (h-10) matches the toolbar's Filter
-         button + search input, so dropping this inline reads as one row.
-         Visually one unit (rounded outer + flat inner borders) with an
-         emerald background on the active pill. --}}
+    {{-- Segmented pill group. Height (h-9 = 36px) intentionally one notch
+         smaller than the toolbar Filter button (h-10) so the time-window
+         reads as a tighter, page-level scope chrome rather than another
+         filter. Short English labels (today/7d/30d/custom) keep the
+         control compact next to a page title even on narrow viewports. --}}
     <div role="group" aria-label="{{ $label ?? 'Periode' }}"
         class="inline-flex items-center rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-sm overflow-hidden">
         @foreach ($presets as $key => $presetLabel)
@@ -119,7 +123,7 @@
                     ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                     : 'bg-transparent text-gray-700 hover:bg-gray-50 dark:text-neutral-300 dark:hover:bg-neutral-700'"
                 x-bind:aria-pressed="active === @js($key)"
-                class="h-10 px-3.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0 border-r border-gray-200 dark:border-neutral-700 last:border-r-0">
+                class="h-9 px-3 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0 border-r border-gray-200 dark:border-neutral-700 last:border-r-0">
                 {{ $presetLabel }}
             </button>
         @endforeach
@@ -134,8 +138,8 @@
                 ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                 : 'bg-transparent text-gray-700 hover:bg-gray-50 dark:text-neutral-300 dark:hover:bg-neutral-700'"
             x-bind:aria-pressed="active === 'custom'"
-            class="h-10 px-3.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 inline-flex items-center gap-2 border-l border-gray-200 dark:border-neutral-700">
-            <x-lucide-calendar class="size-4" />
+            class="h-9 px-3 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 inline-flex items-center gap-1.5 border-l border-gray-200 dark:border-neutral-700">
+            <x-lucide-calendar class="size-3.5" />
             <span x-text="customLabel"></span>
         </button>
     </div>
@@ -273,13 +277,14 @@
 
                     /**
                      * Dynamic label for the Custom pill — shows the picked
-                     * range when active, otherwise just 'Custom'.
+                     * range when active, otherwise just 'custom' (lowercase
+                     * to match the short-label preset style).
                      */
                     get customLabel() {
                         if (this.active === 'custom' && this.from && this.to) {
                             return `${this.from} → ${this.to}`;
                         }
-                        return 'Custom';
+                        return 'custom';
                     },
                 }));
             });
