@@ -191,23 +191,32 @@
 
     {{-- Active filter chips: one chip per dimension. Click × clears the whole
          dimension (all selected values within it). To remove a single value,
-         user re-opens the panel and unchecks the option. --}}
-    <template x-if="chips.length > 0">
-        <div class="flex flex-wrap items-center gap-2 mt-2 basis-full">
-            <template x-for="chip in chips" :key="chip.model">
-                <span class="inline-flex items-center gap-x-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 max-w-md">
-                    <span x-text="chip.label" class="truncate" x-bind:title="chip.label"></span>
-                    <button type="button"
-                        x-on:click="clearDimension(chip.model)"
-                        class="shrink-0 size-3.5 inline-flex items-center justify-center rounded-full text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100 focus:outline-none dark:hover:bg-emerald-800 transition-colors">
-                        <svg class="size-2.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 6 6 18"></path>
-                            <path d="m6 6 12 12"></path>
-                        </svg>
-                    </button>
-                </span>
-            </template>
-        </div>
+         user re-opens the panel and unchecks the option.
+
+         Teleported into [data-filter-chips] target so chips render below the
+         toolbar instead of inline with the filter button. Consumer must
+         provide a target element somewhere in its template:
+             <div data-filter-chips></div>
+         If no target exists, chips fall back to rendering inline (after the
+         filter button) which preserves the previous behaviour. --}}
+    <template x-teleport="[data-filter-chips]">
+        <template x-if="chips.length > 0">
+            <div class="flex flex-wrap items-center gap-2">
+                <template x-for="chip in chips" :key="chip.model">
+                    <span class="inline-flex items-center gap-x-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 max-w-md">
+                        <span x-text="chip.label" class="truncate" x-bind:title="chip.label"></span>
+                        <button type="button"
+                            x-on:click="clearDimension(chip.model)"
+                            class="shrink-0 size-3.5 inline-flex items-center justify-center rounded-full text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100 focus:outline-none dark:hover:bg-emerald-800 transition-colors">
+                            <svg class="size-2.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 6 6 18"></path>
+                                <path d="m6 6 12 12"></path>
+                            </svg>
+                        </button>
+                    </span>
+                </template>
+            </div>
+        </template>
     </template>
 </div>
 
