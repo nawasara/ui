@@ -1,6 +1,14 @@
 @props(['id', 'items' => [], 'modalName' => null])
 
-<div class="hs-dropdown [--placement:bottom-right] relative inline-flex">
+{{-- --scope:window tells Preline to teleport the menu element to <body>
+     when opened (and back when closed). This sidesteps every container's
+     stacking context, overflow:hidden, and sticky-cell paint order issues
+     that previously sandwiched the menu behind adjacent rows' kebab
+     buttons in tables. With body-scope, the menu lives at the document
+     root with z-[100], so nothing in the table can ever clip or overlap
+     it. Pair with [--strategy:fixed] (Preline default) to keep it pinned
+     during scroll. --}}
+<div class="hs-dropdown [--placement:bottom-right] [--scope:window] relative inline-flex">
     {{-- Toggle: vertical dots — title attribute kasih native tooltip
          (browser-rendered, accessible). Pakai native title vs custom
          tooltip component karena dropdown trigger di kondisi closed
@@ -16,11 +24,10 @@
         </svg>
     </button>
 
-    {{-- Dropdown Menu — z-50 so it stacks above sticky last-column cells in
-         tables. Sticky positioning creates an implicit stacking context that
-         can clip child absolute-positioned popovers; bumping z-index here
-         keeps the menu visible when its row's last cell is the sticky one. --}}
-    <div class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden z-50 mt-2 min-w-40 bg-white shadow-md rounded-lg p-1 dark:bg-neutral-800 dark:border dark:border-neutral-700"
+    {{-- Dropdown Menu — z-[100] (well above filter-panel, modals stay on
+         top via z-[200]+). Once Preline opens this, --scope:window moves
+         it to <body> so no parent stacking context applies. --}}
+    <div class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden z-[100] mt-2 min-w-40 bg-white shadow-md rounded-lg p-1 dark:bg-neutral-800 dark:border dark:border-neutral-700"
         role="menu" aria-orientation="vertical">
 
         @foreach ($items as $item)

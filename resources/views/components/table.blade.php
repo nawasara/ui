@@ -56,16 +56,16 @@
                 // - selected row (consumer sets bg on <tr>) → consumer must
                 //   also set bg-inherit on the last <td> OR use the matching
                 //   bg colour. We document this in the prop docblock.
-                // z-index strategy:
-                // - Sticky body cells deliberately have NO explicit z-index.
-                //   Setting one (even z-0) creates a new stacking context that
-                //   traps any popover (e.g. dropdown action menu) spawned from
-                //   inside the cell, leaving it clipped by adjacent rows'
-                //   sticky cells. With z=auto, sticky cells DO NOT create a
-                //   stacking context, and the menu's z-50 wins globally.
-                // - Sticky header gets z-20 explicitly: it must overlay body
-                //   cells when horizontal scroll happens, but stays below
-                //   any popovers (dropdown menu = z-50).
+                // z-index strategy (sticky last column + dropdown menus):
+                // - Sticky body cells deliberately keep z-index: auto (no
+                //   stacking context) so they don't isolate child popovers.
+                //   The actual dropdown menu uses --scope:window (Preline)
+                //   which teleports the menu to <body> when opened, so it
+                //   escapes ALL ancestor stacking contexts and overflow
+                //   clipping by design. No z-index gymnastics needed here.
+                // - Sticky header gets z-20: must overlay body cells during
+                //   horizontal scroll. Below modals (z-[200]+) and the
+                //   teleported dropdown menu (z-[100]).
                 $bodySticky = $stickyLast ? '
                     [&>tr>td:last-child]:sticky
                     [&>tr>td:last-child]:right-0
