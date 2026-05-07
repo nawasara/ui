@@ -20,7 +20,7 @@
     x-init="registerDimension({ model: @js($model), label: @js($label), items: @js((object) $normalised) })"
     x-on:click="selectDimension({ model: @js($model), label: @js($label), items: @js((object) $normalised) })"
     x-on:mouseenter="selectDimension({ model: @js($model), label: @js($label), items: @js((object) $normalised) })"
-    x-bind:class="activeDim?.model === @js($model)
+    x-bind:class="activeDim === @js($model)
         ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
         : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700/50'"
     class="w-full flex items-center justify-between gap-x-2 px-3 py-2 text-sm transition-colors">

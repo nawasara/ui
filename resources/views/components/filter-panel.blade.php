@@ -39,12 +39,19 @@
      - Local Alpine state holds DRAFT values; UI mutations (toggle option,
        remove chip) are instant. No server roundtrip per click.
      - 3s debounce after last mutation triggers $wire.set + $commit, batching
-     all changes into one request.
+       all changes into one request.
      - Force flush triggers: panel close, Apply button click, chip remove,
        beforeunload (best-effort to avoid data loss).
      - Single-select models clear when same value re-clicked (radio toggle).
-     Multi-select models add/remove independently. --}}
-<div
+       Multi-select models add/remove independently.
+
+     wire:ignore on root because Livewire morph after $wire.set/commit would
+     otherwise tear down the Alpine instance (initial @js() prop changes →
+     attribute value changes → element replaced → state lost). The component
+     is fully Alpine-managed; server only learns about state via $wire.set
+     calls from inside the panel itself, never the other way around within
+     a single page lifecycle. --}}
+<div wire:ignore
     x-data="filterPanel({
         initial: @js((object) $state),
         multipleModels: @js(array_values($multiple)),
@@ -101,14 +108,17 @@
                         </div>
                     </div>
 
-                    {{-- Value picker for active dimension --}}
-                    <template x-if="activeDim">
+                    {{-- Value picker for active dimension. Reads from activeDimObject()
+                         (registry lookup) instead of cached object, so it survives
+                         Livewire morph cycles where the original object reference
+                         passed to selectDimension() may be stale. --}}
+                    <template x-if="activeDimObject()">
                         <div>
                             <div class="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-neutral-400"
-                                 x-text="activeDim?.label"></div>
+                                 x-text="activeDimObject()?.label"></div>
 
                             {{-- Search inside value list (shown when more than 7 options) --}}
-                            <div x-show="activeDim && activeDim.items && Object.keys(activeDim.items).length > 7"
+                            <div x-show="(() => { const d = activeDimObject(); return d && d.items && Object.keys(d.items).length > 7 })()"
                                  class="px-3 pb-2">
                                 <div class="relative">
                                     <div class="absolute inset-y-0 start-0 flex items-center pointer-events-none ps-2.5">
@@ -121,17 +131,17 @@
                             </div>
 
                             <div class="px-1 space-y-0.5">
-                                <template x-for="(text, value) in filteredOptions(activeDim)" :key="value">
+                                <template x-for="(text, value) in filteredOptions(activeDimObject())" :key="value">
                                     <button type="button"
-                                        x-on:click="toggle(activeDim.model, value)"
+                                        x-on:click="toggle(activeDim, value)"
                                         class="w-full flex items-center gap-x-2.5 py-1.5 px-2.5 rounded-lg text-sm transition-colors"
-                                        x-bind:class="isSelected(activeDim.model, value)
+                                        x-bind:class="isSelected(activeDim, value)
                                             ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900/50'
                                             : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-700'">
-                                        <template x-if="isSelected(activeDim.model, value)">
+                                        <template x-if="isSelected(activeDim, value)">
                                             <x-lucide-check-circle-2 class="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                                         </template>
-                                        <template x-if="!isSelected(activeDim.model, value)">
+                                        <template x-if="!isSelected(activeDim, value)">
                                             <span class="size-4 shrink-0 rounded-full border border-gray-300 dark:border-neutral-600"></span>
                                         </template>
                                         <span x-text="text" class="text-left truncate"></span>
@@ -251,13 +261,23 @@
                         // Auto-select first registered dimension so the value picker
                         // shows immediately on panel open instead of an empty state.
                         if (!this.activeDim) {
-                            this.activeDim = dim;
+                            this.activeDim = dim.model;
                         }
                     },
 
                     selectDimension(dim) {
-                        this.activeDim = dim;
+                        // Store only the model key as activeDim; everything else is
+                        // looked up from the dimensions_ registry on read. Avoids
+                        // stale object references after Livewire morph (re-rendered
+                        // filter-group elements re-call selectDimension with fresh
+                        // object literals, but the registry stays canonical).
+                        this.activeDim = typeof dim === 'string' ? dim : dim.model;
                         this.optionSearch = '';
+                    },
+
+                    activeDimObject() {
+                        if (!this.activeDim) return null;
+                        return this.dimensions_.find(d => d.model === this.activeDim) || null;
                     },
 
                     isSelected(model, value) {
