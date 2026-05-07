@@ -69,22 +69,14 @@
         <livewire:nawasara-ui.shared-components.sidebar />
     @endif
 
-    <!-- Content
-         Page transition: subtle opacity fade saat wire:navigate triggered.
-         Listening ke Livewire navigation events:
-         - livewire:navigating -> konten lama mulai fade out (opacity-50)
-         - livewire:navigated  -> konten baru muncul fade-in via CSS animation
-
-         Pure CSS opacity transition (no layout shift) — kompositor-only,
-         tidak block render. Durasi ringan 150ms — kurang dari itu user tidak
-         notice, lebih dari itu mulai feel sluggish.
-
-         Di-skip kalau prefers-reduced-motion set (accessibility).
-
-         Pakai x-on: full syntax (bukan @ shorthand) karena Blade akan
-         menafsirkan @livewire:navigating sebagai @livewire directive dan
-         compile jadi closure call yang fail di runtime ('Too few arguments
-         to function ...'). x-on:event:name aman dari Blade parser. -->
+    {{-- Page transition wrapper.
+         Subtle opacity fade saat wire:navigate triggered:
+         - livewire:navigating event -> opacity 50%
+         - livewire:navigated event  -> opacity 100%
+         Pure CSS transition 150ms, kompositor-only, no layout shift.
+         Skip kalau prefers-reduced-motion (accessibility).
+         Pakai full x-on: syntax (not Alpine shorthand), karena event-name
+         starting with 'livewire' di-misinterpret oleh Blade compiler. --}}
     <div class="w-full {{ $inWorkspace ? 'lg:ps-64' : '' }}">
         <div
             x-data="{ navigating: false }"
