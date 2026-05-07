@@ -106,11 +106,11 @@
             </button>
         @endforeach
 
-        {{-- Custom mode trigger. The flatpickr instance is anchored to the
-             hidden <input> below (created in init()). Clicking this pill
-             opens it. When a range is picked, x-on:change on the input
-             commits to Livewire. --}}
-        <button type="button"
+        {{-- Custom mode trigger. The flatpickr instance is anchored to
+             this button (positionElement) so the calendar pops out
+             immediately below it. The hidden <input> below is just where
+             flatpickr stores the formatted value; it has no visible role. --}}
+        <button type="button" x-ref="customBtn"
             x-on:click="openCustom()"
             x-bind:class="active === 'custom'
                 ? 'bg-emerald-600 text-white hover:bg-emerald-700'
@@ -122,10 +122,14 @@
         </button>
     </div>
 
-    {{-- Hidden input wired to flatpickr in mode='range'. The visible UI
-         is the Custom pill above; clicking it calls _fp.open(). On change,
-         _fp.config.onChange fires our handler which sets from/to + active. --}}
-    <input type="text" x-ref="picker" hidden tabindex="-1" aria-hidden="true">
+    {{-- Storage input — flatpickr writes the formatted range string here.
+         Hidden + sized 0 so it doesn't grab focus or take layout space.
+         We DO NOT use display:none / hidden attribute because flatpickr
+         skips initialisation on truly-hidden inputs in some configs.
+         Positioning is anchored to the Custom button via positionElement
+         in the Alpine init below, not to this element. --}}
+    <input type="text" x-ref="picker" tabindex="-1" aria-hidden="true"
+        class="absolute opacity-0 pointer-events-none w-0 h-0">
 </div>
 
 @once
@@ -157,9 +161,22 @@
                                 mode: 'range',
                                 dateFormat: 'Y-m-d',
                                 allowInput: false,
-                                // Mount calendar to <body> so it escapes any
-                                // ancestor stacking context (sticky tables, etc).
+                                // Mount calendar to <body> so it escapes
+                                // any ancestor stacking context (sticky
+                                // tables, modals, overflow:hidden cards).
                                 appendTo: document.body,
+                                // Anchor positioning to the Custom *button* -
+                                // not the hidden storage input - so the
+                                // calendar pops out immediately under the
+                                // user's click target. Without this, flatpickr
+                                // measures from the (visually hidden, 0x0)
+                                // <input> and the calendar floats off-screen
+                                // (lower-left of viewport in most browsers).
+                                positionElement: this.$refs.customBtn,
+                                // 'auto' lets flatpickr flip vertically if
+                                // there isn't room below the button (typical
+                                // when the toolbar sits near the page bottom).
+                                position: 'auto',
                                 // Sync defaultDate from custom values if present.
                                 defaultDate: (this.from && this.to) ? [this.from, this.to] : null,
                                 onChange: (dates) => {
