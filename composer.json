@@ -38,8 +38,10 @@
     },
     "require": {
         "php": "^8.1",
+        "ext-zip": "*",
         "illuminate/support": "^10.0|^12.0",
         "livewire/livewire": "^3.0",
+        "maatwebsite/excel": "^3.1.69",
         "mallardduck/blade-lucide-icons": "^1.0"
     },
     "extra": {
