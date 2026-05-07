@@ -101,20 +101,13 @@
              Width fixed (left 14rem + right 16rem = 30rem) so layout is
              stable regardless of which dimension is active.
 
-             Interactivity hooks:
-             - x-on:click / mouseenter / keydown / mousemove → bumpIdle() resets
-               the 3s idle-close timer.
-             - x-on:click.outside → close panel (Alpine ignores nested children).
-             - x-on:keydown.escape.window → close (a11y). --}}
-        <div class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden z-50 mt-2 bg-white shadow-xl rounded-xl border border-gray-200 dark:bg-neutral-800 dark:border-neutral-700 overflow-hidden"
-            role="menu" aria-orientation="vertical" aria-labelledby="{{ $id }}-toggle"
-            x-on:click="bumpIdle()"
-            x-on:mouseenter="bumpIdle()"
-            x-on:mousemove.throttle.500ms="bumpIdle()"
-            x-on:keydown="bumpIdle()"
-            x-on:mouseleave="bumpIdle()"
-            x-on:click.outside="closePanel('#{{ $id }}-toggle')"
-            x-on:keydown.escape.window="closePanel('#{{ $id }}-toggle')">
+             Idle/outside/esc handlers are attached imperatively in init()
+             via DOM listeners (NOT Alpine x-on) because wire:ignore on the
+             root inhibits Alpine's per-element directive scanning for some
+             nested elements. Imperative listeners always fire. --}}
+        <div data-fp-menu
+            class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden z-50 mt-2 bg-white shadow-xl rounded-xl border border-gray-200 dark:bg-neutral-800 dark:border-neutral-700 overflow-hidden"
+            role="menu" aria-orientation="vertical" aria-labelledby="{{ $id }}-toggle">
 
             <div class="flex" style="max-height: 480px; width: 30rem;">
                 {{-- Left: dimensions (rendered by filter-group children) --}}
@@ -257,16 +250,60 @@
                             this.state[model] = this.normaliseToArray(value);
                             this.lastFlushed[model] = [...this.state[model]];
                         }
-                        // Listen for the dropdown opening so we can start the idle timer.
-                        // Preline dispatches 'open.hs.dropdown' on the dropdown root;
-                        // we attach via DOM listener because Alpine x-on doesn't catch
-                        // events on the same element when wire:ignore is in effect.
+
+                        // Wait for the dropdown DOM to be ready, then wire up imperative
+                        // listeners. Doing this here (not via x-on:) because wire:ignore
+                        // on the root prevents Alpine from reliably binding directives
+                        // to nested elements like the menu container.
                         this.$nextTick(() => {
                             const root = this.$el.querySelector('.hs-dropdown');
-                            if (root) {
-                                root.addEventListener('open.hs.dropdown', () => this.bumpIdle());
-                            }
+                            const menu = this.$el.querySelector('[data-fp-menu]');
+                            if (!root || !menu) return;
+
+                            // Bump idle timer on any user interaction inside the menu.
+                            // mousemove is throttled to ~10 Hz to avoid runaway resets.
+                            const bump = () => this.bumpIdle();
+                            menu.addEventListener('click', bump);
+                            menu.addEventListener('mouseenter', bump);
+                            menu.addEventListener('mouseleave', bump);
+                            menu.addEventListener('keydown', bump);
+                            let lastMove = 0;
+                            menu.addEventListener('mousemove', () => {
+                                const now = Date.now();
+                                if (now - lastMove > 100) { lastMove = now; bump(); }
+                            });
+
+                            // Start (or reset) the idle timer when Preline opens the panel.
+                            root.addEventListener('open.hs.dropdown', bump);
+
+                            // Outside-click: close panel when click lands anywhere outside
+                            // the dropdown root. Captures phase so it fires before any
+                            // child handlers stop propagation.
+                            this._outsideClickHandler = (e) => {
+                                if (!root.classList.contains('open')) return;
+                                if (root.contains(e.target)) return;
+                                this.closePanel('#' + root.querySelector('.hs-dropdown-toggle').id);
+                            };
+                            document.addEventListener('click', this._outsideClickHandler, true);
+
+                            // Esc closes (a11y).
+                            this._escHandler = (e) => {
+                                if (e.key !== 'Escape') return;
+                                if (!root.classList.contains('open')) return;
+                                this.closePanel('#' + root.querySelector('.hs-dropdown-toggle').id);
+                            };
+                            document.addEventListener('keydown', this._escHandler);
                         });
+                    },
+
+                    destroy() {
+                        // Cleanup global listeners on Alpine teardown (e.g. navigate).
+                        if (this._outsideClickHandler) {
+                            document.removeEventListener('click', this._outsideClickHandler, true);
+                        }
+                        if (this._escHandler) {
+                            document.removeEventListener('keydown', this._escHandler);
+                        }
                     },
 
                     normaliseToArray(value) {
