@@ -16,8 +16,11 @@
         </svg>
     </button>
 
-    {{-- Dropdown Menu --}}
-    <div class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden z-20 mt-2 min-w-40 bg-white shadow-md rounded-lg p-1 dark:bg-neutral-800 dark:border dark:border-neutral-700"
+    {{-- Dropdown Menu — z-50 so it stacks above sticky last-column cells in
+         tables. Sticky positioning creates an implicit stacking context that
+         can clip child absolute-positioned popovers; bumping z-index here
+         keeps the menu visible when its row's last cell is the sticky one. --}}
+    <div class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden z-50 mt-2 min-w-40 bg-white shadow-md rounded-lg p-1 dark:bg-neutral-800 dark:border dark:border-neutral-700"
         role="menu" aria-orientation="vertical">
 
         @foreach ($items as $item)
