@@ -27,6 +27,29 @@
         $btnDisabled = 'inline-flex items-center justify-center min-w-9 h-9 px-3 text-sm font-medium rounded-lg border border-gray-200 bg-gray-50 text-gray-400 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-600 cursor-not-allowed';
         $iconBtnIdle = 'inline-flex items-center justify-center size-9 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-emerald-900/20 dark:hover:border-emerald-800/50 dark:hover:text-emerald-400 transition-colors';
         $iconBtnDisabled = 'inline-flex items-center justify-center size-9 rounded-lg border border-gray-200 bg-gray-50 text-gray-300 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-700 cursor-not-allowed';
+
+        /**
+         * Force absolute URL for every paginator link.
+         *
+         * Livewire's WithPagination sets currentPathResolver to
+         * Livewire::originalPath() which returns request()->path() - that's
+         * a RELATIVE path with no leading slash (e.g. 'nawasara-cloudflare/dns').
+         * Paginator concatenates it as-is, producing relative hrefs like
+         * 'nawasara-cloudflare/dns?page=4'. Browsers then resolve those
+         * against the current URL, doubling the prefix
+         * (/nawasara-cloudflare/nawasara-cloudflare/dns?page=4) and 404'ing.
+         *
+         * url()->to() prepends the app base URL so every href is absolute
+         * and resolution-stable regardless of the current URL's trailing slash.
+         */
+        $absUrl = function ($url) {
+            if (! $url) return $url;
+            // Already absolute (http/https or protocol-relative or root-relative)
+            if (preg_match('#^(https?:)?//#i', $url) || str_starts_with($url, '/')) {
+                return $url;
+            }
+            return url($url);
+        };
     @endphp
 
     <nav role="navigation" aria-label="{{ __('Pagination Navigation') }}"
@@ -56,7 +79,7 @@
                     <x-lucide-chevron-left class="size-4" />
                 </span>
             @else
-                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="{{ $iconBtnIdle }}"
+                <a href="{{ $absUrl($paginator->previousPageUrl()) }}" rel="prev" class="{{ $iconBtnIdle }}"
                     aria-label="{{ __('pagination.previous') }}">
                     <x-lucide-chevron-left class="size-4" />
                 </a>
@@ -68,7 +91,7 @@
             </span>
 
             @if ($paginator->hasMorePages())
-                <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="{{ $iconBtnIdle }}"
+                <a href="{{ $absUrl($paginator->nextPageUrl()) }}" rel="next" class="{{ $iconBtnIdle }}"
                     aria-label="{{ __('pagination.next') }}">
                     <x-lucide-chevron-right class="size-4" />
                 </a>
@@ -87,7 +110,7 @@
                     <x-lucide-chevron-left class="size-4" />
                 </span>
             @else
-                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="{{ $iconBtnIdle }}"
+                <a href="{{ $absUrl($paginator->previousPageUrl()) }}" rel="prev" class="{{ $iconBtnIdle }}"
                     aria-label="{{ __('pagination.previous') }}">
                     <x-lucide-chevron-left class="size-4" />
                 </a>
@@ -107,7 +130,7 @@
                         @if ($page == $paginator->currentPage())
                             <span class="{{ $btnActive }}" aria-current="page">{{ $page }}</span>
                         @else
-                            <a href="{{ $url }}" class="{{ $btnIdle }}"
+                            <a href="{{ $absUrl($url) }}" class="{{ $btnIdle }}"
                                 aria-label="{{ __('Go to page :page', ['page' => $page]) }}">{{ $page }}</a>
                         @endif
                     @endforeach
@@ -116,7 +139,7 @@
 
             {{-- Next --}}
             @if ($paginator->hasMorePages())
-                <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="{{ $iconBtnIdle }}"
+                <a href="{{ $absUrl($paginator->nextPageUrl()) }}" rel="next" class="{{ $iconBtnIdle }}"
                     aria-label="{{ __('pagination.next') }}">
                     <x-lucide-chevron-right class="size-4" />
                 </a>

@@ -51,7 +51,7 @@
      is fully Alpine-managed; server only learns about state via $wire.set
      calls from inside the panel itself, never the other way around within
      a single page lifecycle. --}}
-<div wire:ignore
+<div wire:ignore wire:key="{{ $id }}"
     x-data="filterPanel({
         initial: @js((object) $state),
         multipleModels: @js(array_values($multiple)),
