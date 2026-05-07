@@ -251,17 +251,13 @@
                             this.lastFlushed[model] = [...this.state[model]];
                         }
 
-                        // Wait for the dropdown DOM to be ready, then wire up imperative
-                        // listeners. Doing this here (not via x-on:) because wire:ignore
-                        // on the root prevents Alpine from reliably binding directives
-                        // to nested elements like the menu container.
-                        this.$nextTick(() => {
-                            const root = this.$el.querySelector('.hs-dropdown');
-                            const menu = this.$el.querySelector('[data-fp-menu]');
-                            if (!root || !menu) return;
+                        // Wire up imperative listeners. Try via $nextTick first; if the
+                        // dropdown DOM is not ready (Livewire/Preline timing), retry on
+                        // a short interval until found, with a hard cap.
+                        const wire = (root, menu) => {
+                            console.log('[filter-panel] wiring listeners', { root, menu });
 
                             // Bump idle timer on any user interaction inside the menu.
-                            // mousemove is throttled to ~10 Hz to avoid runaway resets.
                             const bump = () => this.bumpIdle();
                             menu.addEventListener('click', bump);
                             menu.addEventListener('mouseenter', bump);
@@ -274,26 +270,64 @@
                             });
 
                             // Start (or reset) the idle timer when Preline opens the panel.
-                            root.addEventListener('open.hs.dropdown', bump);
+                            // Listen for both Preline's custom event and a class-mutation
+                            // observer as fallback (Preline 3.2.3 dispatches inconsistently).
+                            root.addEventListener('open.hs.dropdown', () => {
+                                console.log('[filter-panel] open.hs.dropdown fired, bumping idle');
+                                bump();
+                            });
 
-                            // Outside-click: close panel when click lands anywhere outside
-                            // the dropdown root. Captures phase so it fires before any
-                            // child handlers stop propagation.
+                            // Class-mutation observer as a backup signal: when the root
+                            // gains class 'open', start the idle timer; when it loses
+                            // 'open', clear it. Catches the case where Preline mutates the
+                            // class without firing the event for some reason.
+                            const observer = new MutationObserver(() => {
+                                if (root.classList.contains('open')) {
+                                    if (!this.idleTimerId) {
+                                        console.log('[filter-panel] panel opened (observer), starting idle');
+                                        bump();
+                                    }
+                                } else if (this.idleTimerId) {
+                                    console.log('[filter-panel] panel closed (observer), clearing idle');
+                                    clearTimeout(this.idleTimerId);
+                                    this.idleTimerId = null;
+                                }
+                            });
+                            observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+                            this._classObserver = observer;
+
+                            // Outside-click closer (capture phase beats stopPropagation).
                             this._outsideClickHandler = (e) => {
                                 if (!root.classList.contains('open')) return;
                                 if (root.contains(e.target)) return;
-                                this.closePanel('#' + root.querySelector('.hs-dropdown-toggle').id);
+                                console.log('[filter-panel] outside click → close');
+                                const toggle = root.querySelector('.hs-dropdown-toggle');
+                                if (toggle) this.closePanel('#' + toggle.id);
                             };
                             document.addEventListener('click', this._outsideClickHandler, true);
 
-                            // Esc closes (a11y).
+                            // Esc closer (a11y).
                             this._escHandler = (e) => {
                                 if (e.key !== 'Escape') return;
                                 if (!root.classList.contains('open')) return;
-                                this.closePanel('#' + root.querySelector('.hs-dropdown-toggle').id);
+                                console.log('[filter-panel] esc → close');
+                                const toggle = root.querySelector('.hs-dropdown-toggle');
+                                if (toggle) this.closePanel('#' + toggle.id);
                             };
                             document.addEventListener('keydown', this._escHandler);
-                        });
+                        };
+
+                        const tryWire = (attempt = 0) => {
+                            const root = this.$el.querySelector('.hs-dropdown');
+                            const menu = this.$el.querySelector('[data-fp-menu]');
+                            if (root && menu) { wire(root, menu); return; }
+                            if (attempt > 20) {
+                                console.warn('[filter-panel] gave up wiring after 20 attempts', { root, menu, $el: this.$el });
+                                return;
+                            }
+                            setTimeout(() => tryWire(attempt + 1), 50);
+                        };
+                        this.$nextTick(() => tryWire());
                     },
 
                     destroy() {
@@ -303,6 +337,9 @@
                         }
                         if (this._escHandler) {
                             document.removeEventListener('keydown', this._escHandler);
+                        }
+                        if (this._classObserver) {
+                            this._classObserver.disconnect();
                         }
                     },
 
@@ -488,24 +525,31 @@
                     // menu element. Cleared on panel close so it doesn't fire again.
                     bumpIdle() {
                         if (this.idleTimerId) clearTimeout(this.idleTimerId);
+                        console.log('[filter-panel] bumpIdle (close in', this.debounceMs, 'ms)');
                         this.idleTimerId = setTimeout(() => {
-                            // Find the toggle button via the dropdown root + close it.
-                            // Preline's HSDropdown.getInstance() needs the toggle id.
+                            console.log('[filter-panel] idle timer fired → close');
                             const root = this.$el.querySelector('.hs-dropdown');
                             const toggle = root?.querySelector('.hs-dropdown-toggle');
                             if (toggle && window.HSDropdown) {
                                 window.HSDropdown.getInstance('#' + toggle.id)?.close();
+                            } else {
+                                console.warn('[filter-panel] cannot close: HSDropdown or toggle missing', { toggle, HSDropdown: window.HSDropdown });
                             }
                         }, this.debounceMs);
                     },
 
                     closePanel(toggleSelector) {
+                        console.log('[filter-panel] closePanel called', toggleSelector);
                         if (this.idleTimerId) {
                             clearTimeout(this.idleTimerId);
                             this.idleTimerId = null;
                         }
                         if (window.HSDropdown) {
-                            window.HSDropdown.getInstance(toggleSelector)?.close();
+                            const inst = window.HSDropdown.getInstance(toggleSelector);
+                            console.log('[filter-panel] HSDropdown instance', inst);
+                            inst?.close();
+                        } else {
+                            console.warn('[filter-panel] HSDropdown not available');
                         }
                     },
 
