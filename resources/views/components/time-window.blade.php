@@ -38,11 +38,18 @@
     ],
     /**
      * Optional inline label rendered before the segmented pills.
-     * Pass null/false to omit. Default null - the segmented control reads
-     * as a "scope" by itself; explicit labels look like form fields and
-     * disrupt the inline-toolbar flow.
+     * Pass null/false to omit. Default null — by default we render an
+     * icon-only calendar glyph instead of text (set via $showIcon).
+     * Pass an explicit string ('Periode:', 'Range:', etc.) to override.
      */
     'label' => null,
+    /**
+     * Whether to render a small calendar icon before the pills as a
+     * silent visual scope cue. Suppressed when `label` is set (text
+     * label takes priority). Default true so consumers get the cue
+     * without having to opt in.
+     */
+    'showIcon' => true,
 ])
 
 {{-- <x-time-window> — segmented preset selector with optional custom range.
@@ -89,6 +96,14 @@
         <span class="text-xs font-medium text-gray-500 dark:text-neutral-400 shrink-0">
             {{ $label }}
         </span>
+    @elseif ($showIcon)
+        {{-- Icon-only scope cue. Sized to match the surrounding text-sm
+             pill content; muted gray so it reads as ambient hint, not as
+             interactive control. aria-hidden because the role="group"
+             aria-label below already names the control for screen readers. --}}
+        <x-lucide-calendar-days
+            class="size-4 text-gray-400 dark:text-neutral-500 shrink-0"
+            aria-hidden="true" />
     @endif
 
     {{-- Segmented pill group. Height (h-10) matches the toolbar's Filter

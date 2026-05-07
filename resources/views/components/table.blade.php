@@ -25,25 +25,32 @@
     {{-- Knowing others is intelligence; knowing yourself is true wisdom. --}}
     <div class="border border-gray-100 rounded-lg shadow-sm p-6 bg-white dark:bg-neutral-800 dark:border-neutral-700">
         <div class="flex flex-col">
-            <div class="grid grid-cols-3 gap-4 items-center">
-                <div class="col-span-2 p-5 text-lg font-semibold text-left rtl:text-right text-gray-900 dark:text-white">
-                    {{ $title }}
-                </div>
-                <div class="flex flex-col items-end justify-center gap-2">
-                    @if (isset($action))
-                        <div>{{ $action }}</div>
-                    @endif
-                    @if ($useSearch)
-                        <div class="flex flex-row items-center gap-2 mb-2">
-                            <x-nawasara-ui::form.input id="search-table" x-model="searchValue" name="name"
-                                label="" placeholder="Search..." required autofocus />
-                            <div wire:loading class="flex items-center justify-center">
-                                <x-nawasara-ui::loading />
+            {{-- Header bar: only rendered when there's actual content
+                 (title text, custom action slot, or built-in search).
+                 Pages that render their own <x-page-header> above the
+                 table can omit the title and skip this bar entirely
+                 instead of leaving a tall empty strip at the top. --}}
+            @if (! empty(trim((string) $title)) || isset($action) || $useSearch)
+                <div class="grid grid-cols-3 gap-4 items-center">
+                    <div class="col-span-2 p-5 text-lg font-semibold text-left rtl:text-right text-gray-900 dark:text-white">
+                        {{ $title }}
+                    </div>
+                    <div class="flex flex-col items-end justify-center gap-2">
+                        @if (isset($action))
+                            <div>{{ $action }}</div>
+                        @endif
+                        @if ($useSearch)
+                            <div class="flex flex-row items-center gap-2 mb-2">
+                                <x-nawasara-ui::form.input id="search-table" x-model="searchValue" name="name"
+                                    label="" placeholder="Search..." required autofocus />
+                                <div wire:loading class="flex items-center justify-center">
+                                    <x-nawasara-ui::loading />
+                                </div>
                             </div>
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                 </div>
-            </div>
+            @endif
             @php
                 // Sticky-last styling pinned to the right edge during scroll.
                 // The last <th> and last <td> in every <tr> get sticky, right-0,
