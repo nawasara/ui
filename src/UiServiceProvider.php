@@ -2,12 +2,13 @@
 
 namespace Nawasara\Ui;
 
-use Livewire\Livewire;
-use Illuminate\Support\Str;
-use Symfony\Component\Finder\Finder;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
+use Livewire\Livewire;
 use Nawasara\Ui\Services\WorkspaceManager;
+use Symfony\Component\Finder\Finder;
 
 class UiServiceProvider extends ServiceProvider
 {
@@ -19,9 +20,37 @@ class UiServiceProvider extends ServiceProvider
 
         $this->registerLivewire();
 
+        $this->registerPagination();
+
         $this->menuLoader();
 
         $this->offerPublishing();
+    }
+
+    /**
+     * Override Laravel's AND Livewire's default pagination view with our
+     * brand-themed one.
+     *
+     * Two layers because Livewire's WithPagination trait re-overrides the
+     * Paginator default view per-request via its paginationView() method,
+     * which defaults to 'livewire::tailwind'. Setting Paginator::defaultView
+     * alone is insufficient for any Livewire component using WithPagination.
+     *
+     * Strategy:
+     * 1. Paginator::defaultView for non-Livewire callers.
+     * 2. Override the 'livewire::tailwind' view by re-registering the
+     *    'livewire' namespace with our resources/views/vendor/livewire path
+     *    at higher priority. The published file mirrors our pagination
+     *    component so consumers don't have to know which view layer wins.
+     */
+    private function registerPagination(): void
+    {
+        Paginator::defaultView('nawasara-ui::components.pagination');
+        // Prepend (not append) our path under the 'livewire' namespace so
+        // Laravel's view finder picks our tailwind.blade.php BEFORE the one
+        // bundled with the Livewire package. loadViewsFrom appends, which
+        // loses every time because the bundled path is registered first.
+        view()->prependNamespace('livewire', __DIR__.'/../resources/views/livewire-overrides');
     }
 
     public function register(): void

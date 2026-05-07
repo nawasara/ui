@@ -97,29 +97,41 @@
             </svg>
         </button>
 
-        {{-- Cascading panel: left = dimension list, right = value picker.
-             Width fixed (left 14rem + right 16rem = 30rem) so layout is
-             stable regardless of which dimension is active.
+        {{-- Cascading panel.
+
+             Desktop (sm+): 2-column side-by-side. Left = dimension list
+             (14rem), right = value picker (16rem), total 30rem. Both
+             columns visible at once.
+
+             Mobile (<sm): drill-down pattern. Width = calc(100vw - 2rem).
+             Show dimension list by default; tapping a dimension switches
+             the panel to the value picker with a back button. mobileView
+             Alpine state controls which view is shown.
 
              Idle/outside/esc handlers are attached imperatively in init()
              via DOM listeners (NOT Alpine x-on) because wire:ignore on the
              root inhibits Alpine's per-element directive scanning for some
              nested elements. Imperative listeners always fire. --}}
         <div data-fp-menu
-            class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden z-50 mt-2 bg-white shadow-xl rounded-xl border border-gray-200 dark:bg-neutral-800 dark:border-neutral-700 overflow-hidden"
+            class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden z-50 mt-2 bg-white shadow-xl rounded-xl border border-gray-200 dark:bg-neutral-800 dark:border-neutral-700 overflow-hidden w-[calc(100vw-2rem)] max-w-[30rem] sm:w-[30rem]"
             role="menu" aria-orientation="vertical" aria-labelledby="{{ $id }}-toggle">
 
-            <div class="flex" style="max-height: 480px; width: 30rem;">
-                {{-- Left: dimensions (rendered by filter-group children) --}}
-                <div class="w-56 shrink-0 border-r border-gray-200 dark:border-neutral-700 overflow-y-auto py-2 bg-white dark:bg-neutral-800">
+            <div class="flex flex-col sm:flex-row" style="max-height: 70vh; max-height: 480px;">
+                {{-- Left: dimensions list. Desktop: always visible as left column.
+                     Mobile: hidden when value picker is active (mobileView == 'values'). --}}
+                <div class="sm:w-56 sm:shrink-0 sm:border-r border-gray-200 dark:border-neutral-700 overflow-y-auto py-2 bg-white dark:bg-neutral-800"
+                     x-show="mobileView === 'list' || isDesktop()"
+                     x-cloak>
                     {{ $slot }}
                 </div>
 
-                {{-- Right: value picker — always rendered to keep layout stable;
-                     shows placeholder until a dimension is selected/hovered. --}}
-                <div class="flex-1 overflow-y-auto py-2 bg-white dark:bg-neutral-800">
-                    {{-- Placeholder when no dimension active --}}
-                    <div x-show="!activeDim" class="px-4 py-8 text-center">
+                {{-- Right: value picker. Desktop: always visible. Mobile: only
+                     visible when activeDim selected (after user taps a dimension). --}}
+                <div class="flex-1 overflow-y-auto py-2 bg-white dark:bg-neutral-800"
+                     x-show="mobileView === 'values' || isDesktop()"
+                     x-cloak>
+                    {{-- Placeholder when no dimension active (desktop only) --}}
+                    <div x-show="!activeDim && isDesktop()" class="px-4 py-8 text-center">
                         <div class="text-xs text-gray-400 dark:text-neutral-500">
                             Pilih kategori filter di sebelah kiri
                         </div>
@@ -131,6 +143,14 @@
                          passed to selectDimension() may be stale. --}}
                     <template x-if="activeDimObject()">
                         <div>
+                            {{-- Mobile-only back button --}}
+                            <button type="button" x-on:click="mobileView = 'list'"
+                                x-show="!isDesktop()"
+                                class="sm:hidden w-full flex items-center gap-1.5 px-3 py-2 text-xs text-gray-500 hover:text-gray-700 dark:text-neutral-400 dark:hover:text-neutral-200 border-b border-gray-200 dark:border-neutral-700 mb-1">
+                                <x-lucide-chevron-left class="size-3.5" />
+                                Kembali
+                            </button>
+
                             <div class="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-neutral-400"
                                  x-text="activeDimObject()?.label"></div>
 
@@ -252,6 +272,7 @@
                     timerId: null,        // server-flush debounce timer
                     idleTimerId: null,    // panel idle-close timer
                     dimensions_: [],      // populated by registerDimension() from filter-group children
+                    mobileView: 'list',   // 'list' = dimension list, 'values' = value picker (mobile only)
 
                     init() {
                         // Normalise initial state to arrays
@@ -375,11 +396,24 @@
                         // object literals, but the registry stays canonical).
                         this.activeDim = typeof dim === 'string' ? dim : dim.model;
                         this.optionSearch = '';
+                        // Mobile drill-down: opening a dimension switches to the value
+                        // picker view. On desktop both columns are visible so this is
+                        // a no-op (mobileView is ignored when isDesktop()).
+                        this.mobileView = 'values';
                     },
 
                     activeDimObject() {
                         if (!this.activeDim) return null;
                         return this.dimensions_.find(d => d.model === this.activeDim) || null;
+                    },
+
+                    /**
+                     * Match Tailwind sm breakpoint (640px). Used by mobile drill-down
+                     * x-show conditions so the same panel template serves both layouts.
+                     * Read at template eval time, not cached, so window resize works.
+                     */
+                    isDesktop() {
+                        return window.matchMedia('(min-width: 640px)').matches;
                     },
 
                     isSelected(model, value) {
@@ -562,6 +596,9 @@
                             clearTimeout(this.idleTimerId);
                             this.idleTimerId = null;
                         }
+                        // Reset mobile drill-down to the dimension list so reopening
+                        // starts fresh instead of stranding the user on a value picker.
+                        this.mobileView = 'list';
                         // Force flush any pending changes immediately
                         this.applyNow();
                     },
