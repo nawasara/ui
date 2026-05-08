@@ -3,7 +3,8 @@
 namespace Nawasara\Ui\Livewire\Concerns;
 
 use Carbon\CarbonInterface;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Url;
 
@@ -106,10 +107,15 @@ trait HasTimeWindow
      * No-op when both bounds resolve to null (shouldn't happen with the
      * default 'today'/'7d'/'30d' presets, but defensive).
      *
+     * Accept either Eloquent\Builder atau Query\Builder — both expose
+     * whereBetween / where dengan signature kompatibel. Union type biar
+     * caller bisa pakai DB::table(...) langsung untuk UNION subqueries
+     * (lihat ImpersonationLog\Section\Table).
+     *
      * Pass directly to ->tap():
      *   $query->tap(fn ($q) => $this->applyTimeWindow($q, 'created_at'))
      */
-    public function applyTimeWindow(Builder $query, string $column): Builder
+    public function applyTimeWindow(EloquentBuilder|QueryBuilder $query, string $column): EloquentBuilder|QueryBuilder
     {
         [$from, $to] = $this->resolveTimeWindow();
 
