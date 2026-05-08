@@ -1,5 +1,142 @@
 @props(['id', 'items' => [], 'modalName' => null])
 
+@php
+    // ── Helper: parse "method('a', 'b', 1, true, null)" ke JS args list
+    // siap untuk Livewire.find(id).call(method, ...args).
+    //
+    // Output: comma-separated JS args dengan method name sebagai elemen
+    // pertama, mis. "'method', 'a', 'b', 1, true, null". Caller pakai
+    // dengan: __nawasaraDdCall(this, <output>).
+    //
+    // Tipe yang di-recognize:
+    //   - 'foo' / "foo"   → string (preserve quotes, escape isi)
+    //   - 123 / 1.5       → number literal
+    //   - true / false    → boolean literal
+    //   - null            → null literal
+    //   - bareword        → fallback ke string literal (defensive)
+    $_parseWireCall = function (string $raw): string {
+        $raw = trim($raw);
+
+        if (! preg_match('/^([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*(.*?)\s*\)\s*;?\s*$/s', $raw, $m)) {
+            return "'".addslashes($raw)."'";
+        }
+
+        $method = $m[1];
+        $argsStr = $m[2];
+        $parts = ["'".addslashes($method)."'"];
+
+        if ($argsStr !== '') {
+            foreach (preg_split('/\s*,\s*/', $argsStr) as $arg) {
+                $arg = trim($arg);
+
+                if (preg_match("/^'(.*)'$/s", $arg, $sm) || preg_match('/^"(.*)"$/s', $arg, $sm)) {
+                    $parts[] = "'".addslashes($sm[1])."'";
+                    continue;
+                }
+
+                if (is_numeric($arg) || in_array($arg, ['null', 'true', 'false'], true)) {
+                    $parts[] = $arg;
+                    continue;
+                }
+
+                $parts[] = "'".addslashes($arg)."'";
+            }
+        }
+
+        return implode(', ', $parts);
+    };
+@endphp
+
+{{-- ── KENAPA INI BUKAN wire:click ──
+     Preline `--scope:window` (lihat class di outer div) teleport menu
+     element ke <body> saat dropdown terbuka. Akibatnya:
+       1. wire:click di anchor menu TIDAK fire — Livewire bind handler
+          by DOM subtree, dan teleported element keluar dari subtree.
+       2. Alpine $wire reference juga gagal resolve setelah teleport
+          karena Alpine scope chain putus saat element dipindah ke body.
+       3. Alpine x-data variabel di ancestor wrapper juga tidak survive
+          teleport karena anchor lose scope chain ke wrapper.
+
+     Solusi: pakai global `Livewire.find(id).call()` dengan component ID
+     yang DI-RESOLVE & CACHED di onmouseenter trigger button (sebelum
+     teleport). ID disimpan sebagai data-attribute di MENU CONTAINER itu
+     sendiri (yang nanti ke-teleport bareng anchor — anchor di-body
+     tetap punya akses parent menu container untuk baca attribute).
+
+     Helper `__nawasaraDdCall` lookup component ID dari `data-livewire-id`
+     di nearest `.hs-dropdown-menu` ancestor (yang TELEPORTED bersama
+     anchor) atau fallback ke trigger walk-up.
+     ─────────────────────────────────────────────────── --}}
+
+@once
+    {{-- Inject helper sekali per page render. @once memastikan tidak
+         duplicate kalau ada banyak instance dropdown di halaman. --}}
+    <script>
+        (function () {
+            if (window.__nawasaraDdCall) return;
+
+            window.__nawasaraDdCall = function (anchorEl, method, ...args) {
+                if (! anchorEl) return;
+
+                // Strategy 1: anchor's nearest .hs-dropdown-menu ancestor
+                // (teleported bersama anchor) carries data-livewire-id
+                // yang di-set saat trigger di-hover/click.
+                const menu = anchorEl.closest('.hs-dropdown-menu');
+                let wireId = menu ? menu.getAttribute('data-livewire-id') : null;
+
+                // Strategy 2 (fallback): walk up dari anchor ke nearest
+                // [wire:id]. Kalau tidak teleported (mis. mobile responsive
+                // mode), anchor masih di subtree component asli.
+                if (! wireId) {
+                    const root = anchorEl.closest('[wire\\:id]');
+                    if (root) wireId = root.getAttribute('wire:id');
+                }
+
+                if (! wireId) {
+                    console.warn('[dropdown] cannot resolve Livewire component ID for action', method, args);
+                    return;
+                }
+
+                const component = window.Livewire.find(wireId);
+                if (! component) {
+                    console.warn('[dropdown] Livewire.find('+wireId+') returned null');
+                    return;
+                }
+                return component.call(method, ...args);
+            };
+
+            // Hook trigger button click/hover untuk capture component ID
+            // SEBELUM teleport, simpan di adjacent menu element. Pakai
+            // event delegation di body supaya aktif untuk dropdown yang
+            // baru di-render via Livewire morph juga.
+            const captureId = function (e) {
+                const trigger = e.target.closest('.hs-dropdown-toggle');
+                if (! trigger) return;
+
+                // Find component ID from trigger's ancestor (sebelum teleport,
+                // trigger ada di subtree component).
+                const root = trigger.closest('[wire\\:id]');
+                if (! root) return;
+                const wireId = root.getAttribute('wire:id');
+
+                // Find sibling menu element (initial state, before teleport)
+                // dan store ID di sana. Setelah Preline teleport, attribute
+                // tetap menempel di element yang sama.
+                const wrapper = trigger.closest('.hs-dropdown');
+                if (! wrapper) return;
+                const menu = wrapper.querySelector('.hs-dropdown-menu');
+                if (! menu) return;
+
+                menu.setAttribute('data-livewire-id', wireId);
+            };
+
+            document.addEventListener('mouseenter', captureId, true);
+            document.addEventListener('focusin', captureId, true);
+            document.addEventListener('click', captureId, true);
+        })();
+    </script>
+@endonce
+
 {{-- --scope:window tells Preline to teleport the menu element to <body>
      when opened (and back when closed). This sidesteps every container's
      stacking context, overflow:hidden, and sticky-cell paint order issues
@@ -28,77 +165,6 @@
         </svg>
     </button>
 
-    @php
-        // ── Helper: parse "method('a', 'b', 1, true, null)" jadi argumen
-        // siap untuk $wire.call(method, ...args).
-        //
-        // Output: string args yang sudah JS-escaped, prefix dengan nama method
-        // sebagai string literal, mis. "'method', 'a', 'b', 1, true, null".
-        // Caller pakai dengan cara: $wire.call(<output>).
-        //
-        // Tipe yang di-recognize:
-        //   - 'foo' / "foo"   → string (preserve quotes, escape isi)
-        //   - 123 / 1.5       → number (pakai as-is)
-        //   - true / false    → boolean
-        //   - null            → null literal
-        //   - $foo            → BUKAN — caller harus literal string/scalar
-        //                        yang ke-bake ke template oleh Blade dulu.
-        //
-        // Kita pakai regex parsing instead of full JS parser karena input
-        // selalu shape sederhana "name(arg, arg, arg)" — tidak perlu handle
-        // nested calls atau expression. Defensive fallback ke JSON-encode
-        // kalau parse gagal.
-        $_parseWireCall = function (string $raw): string {
-            $raw = trim($raw);
-
-            // Match "method(...)" pattern. Method name = identifier chars only.
-            // \\1 = method name, \\2 = isi parens (bisa kosong, bisa multi-arg)
-            if (! preg_match('/^([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*(.*?)\s*\)\s*;?\s*$/s', $raw, $m)) {
-                // Fallback: tidak match pattern method(args). Treat sebagai
-                // method tanpa args dengan nama raw (rare/unexpected).
-                return json_encode($raw);
-            }
-
-            $method = $m[1];
-            $argsStr = $m[2];
-
-            // Method name as JS string literal — itu argumen pertama $wire.call().
-            $parts = ["'".addslashes($method)."'"];
-
-            if ($argsStr !== '') {
-                // Split args by top-level commas. Untuk shape sederhana yang
-                // kita expect (literal scalar), comma di dalam string literal
-                // tidak terjadi karena caller biasanya pass ID atau slug.
-                // Kalau ada edge case dengan koma di string, caller harus
-                // escape sendiri atau pakai array di payload (bukan use case
-                // saat ini).
-                foreach (preg_split('/\s*,\s*/', $argsStr) as $arg) {
-                    $arg = trim($arg);
-
-                    // Quoted string ('foo' atau "foo") — preserve, normalize ke
-                    // JS single-quote dan re-escape isi.
-                    if (preg_match("/^'(.*)'$/s", $arg, $sm) || preg_match('/^"(.*)"$/s', $arg, $sm)) {
-                        $parts[] = "'".addslashes($sm[1])."'";
-                        continue;
-                    }
-
-                    // Number / null / boolean → emit literal.
-                    if (is_numeric($arg) || in_array($arg, ['null', 'true', 'false'], true)) {
-                        $parts[] = $arg;
-                        continue;
-                    }
-
-                    // Unrecognized shape (mis. variable name) — wrap as string
-                    // safely. Better than emitting bareword yang bisa jadi
-                    // ReferenceError di JS.
-                    $parts[] = "'".addslashes($arg)."'";
-                }
-            }
-
-            return implode(', ', $parts);
-        };
-    @endphp
-
     {{-- Dropdown Menu — z-[100] (well above filter-panel, modals stay on
          top via z-[200]+). Once Preline opens this, --scope:window moves
          it to <body> so no parent stacking context applies. --}}
@@ -113,7 +179,7 @@
                         . ($isDelete
                             ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
                             : 'text-gray-800 hover:bg-gray-100 dark:text-neutral-300 dark:hover:bg-neutral-700')
-                        . ' focus:outline-none';
+                        . ' focus:outline-none cursor-pointer';
 
                     $icon = $item['icon'] ?? match($item['type'] ?? '') {
                         'delete' => 'lucide-trash-2',
@@ -126,48 +192,37 @@
 
                     switch ($item['type'] ?? '') {
                         case 'click':
-                            // ── PERHATIKAN ──
-                            // Komponen ini di-teleport ke <body> oleh Preline
-                            // (--scope:window) saat dropdown terbuka, sehingga
-                            // anchor element keluar dari Livewire component
-                            // sub-tree. Konsekuensinya, atribut `wire:click`
-                            // TIDAK fire — handler Livewire bind by DOM scope
-                            // saat component init, dan teleported element tidak
-                            // termasuk lagi.
+                            // ── BRIDGE METHOD CALL VIA Livewire.find ──
+                            // Pakai inline `onclick=""` (HTML attribute) bukan
+                            // x-on:click karena onclick handler di-attach by
+                            // browser as element property — tidak depend on
+                            // Alpine scope chain yang putus pasca-teleport.
                             //
-                            // Solusi: bridge via Alpine `$wire.call()`. Alpine
-                            // listener attached di element-level (atomic),
-                            // bukan DOM-tree-level, jadi tetap jalan setelah
-                            // teleport. `$wire.call(method, ...args)` adalah
-                            // Livewire 3 JS API resmi dan equivalent dengan
-                            // wire:click.
+                            // `this` di onclick = anchor itu sendiri. Helper
+                            // walk up ke menu container yang punya data-
+                            // livewire-id (di-set saat trigger pertama
+                            // di-interact, sebelum Preline teleport).
                             //
-                            // Parser di bawah: caller masih pass syntax
-                            // "method('a', 'b')" seperti biasa di field
-                            // 'wire:click' (atau 'action'+'param'). Kita
-                            // ekstrak nama method + JSON args, lalu render
-                            // sebagai $wire.call(method, ...args). Args
-                            // di-detect tipe number/string/null/boolean
-                            // supaya call signature ke PHP method tetap
-                            // benar (number tidak ke-coerce jadi string).
+                            // Modal dispatch (kalau ada): pakai window event
+                            // dispatch yang juga survive teleport karena
+                            // listener-nya di window scope, bukan element
+                            // scope.
                             $rawClick = $item['wire:click'] ?? "{$item['action']}('{$item['param']}')";
-                            $jsCall = '$wire.call('.$_parseWireCall($rawClick).')';
+                            $jsArgs = $_parseWireCall($rawClick);
+                            $jsCall = "__nawasaraDdCall(this, {$jsArgs})";
+
                             $modalDispatch = ! empty($item['modal'])
-                                ? "; \$dispatch('open-modal', {id: '{$item['modal']}', loading: true})"
+                                ? "; window.dispatchEvent(new CustomEvent('open-modal', {detail: {id: '{$item['modal']}', loading: true}}))"
                                 : '';
 
-                            // wire:confirm support — Livewire normalnya
-                            // intercept klik dengan native confirm() popup
-                            // sebelum wire:click dispatch. Karena kita pakai
-                            // $wire.call() (bukan wire:click), Livewire tidak
-                            // wrap action ini lagi. Implement manual: kalau
-                            // user batal, return early sebelum panggil $wire.
+                            // wire:confirm support — manual karena kita
+                            // bypass Livewire wire:click interceptor.
                             if (! empty($item['confirm'])) {
                                 $msg = addslashes($item['confirm']);
                                 $jsCall = "if (! confirm('{$msg}')) return; ".$jsCall;
                             }
 
-                            $attrs['x-on:click'] = $jsCall.$modalDispatch;
+                            $attrs['onclick'] = $jsCall.$modalDispatch;
                             break;
                         case 'link':
                         case 'href':
@@ -200,12 +255,10 @@
                     }
 
                     // Note: `wire:confirm` di-handle inline di case 'click'
-                    // (manual confirm() guard) karena $wire.call() bypass
-                    // Livewire's wire:click interceptor. Untuk type lain
-                    // (delete via Livewire.dispatch, href dengan plain
-                    // navigation), wire:confirm tidak applicable — kalau
-                    // butuh konfirmasi, caller bisa pasang `onclick="return
-                    // confirm(...)"` sendiri.
+                    // (manual confirm() guard) karena kita bypass Livewire's
+                    // wire:click interceptor. Untuk type lain (delete via
+                    // Livewire.dispatch, href dengan plain navigation),
+                    // wire:confirm tidak applicable.
                 @endphp
 
                 <a {{ $attributes->merge($attrs) }}>
