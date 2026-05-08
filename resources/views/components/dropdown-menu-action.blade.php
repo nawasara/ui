@@ -109,8 +109,16 @@
             // SEBELUM teleport, simpan di adjacent menu element. Pakai
             // event delegation di body supaya aktif untuk dropdown yang
             // baru di-render via Livewire morph juga.
+            //
+            // Defensive: e.target bisa bukan Element kalau event fire di
+            // text node / window / document context. closest() hanya ada
+            // di Element prototype — guard supaya tidak throw TypeError
+            // yang spam console untuk setiap mouseenter di seluruh page.
             const captureId = function (e) {
-                const trigger = e.target.closest('.hs-dropdown-toggle');
+                const target = e.target;
+                if (! target || typeof target.closest !== 'function') return;
+
+                const trigger = target.closest('.hs-dropdown-toggle');
                 if (! trigger) return;
 
                 // Find component ID from trigger's ancestor (sebelum teleport,
