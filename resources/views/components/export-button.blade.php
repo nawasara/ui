@@ -36,7 +36,11 @@
 @endphp
 
 @if ($renderButton)
-    <x-nawasara-ui::tooltip :text="$tooltip" placement="bottom">
+    {{-- placement="bottom-end": tooltip anchored ke kanan trigger,
+         extend ke kiri. Export button hampir selalu di pojok kanan
+         toolbar, jadi tooltip "bottom" (centered) sering overflow
+         viewport edge dan trigger horizontal scroll. --}}
+    <x-nawasara-ui::tooltip :text="$tooltip" placement="bottom-end">
         <div class="hs-dropdown relative inline-flex [--placement:bottom-end]">
             <button type="button"
                 aria-label="{{ $tooltip }}"

@@ -26,7 +26,21 @@
 --}}
 @props([
     'text' => '',
-    'placement' => 'top', // top | bottom | left | right
+    /**
+     * Tooltip position relative ke trigger.
+     *   top | bottom | left | right     → center-aligned ke trigger
+     *   top-end | bottom-end             → right-aligned ke trigger
+     *                                      (extend ke kiri — pakai untuk
+     *                                      icon button di pojok kanan
+     *                                      toolbar supaya tooltip text
+     *                                      gak overflow ke luar viewport)
+     *   top-start | bottom-start         → left-aligned ke trigger
+     *                                      (mirror dari -end, untuk button
+     *                                      di pojok kiri)
+     *
+     * Konvensi naming: mirror Floating UI / Popper API supaya familiar.
+     */
+    'placement' => 'top',
 ])
 
 @if (trim($text) === '')
@@ -35,11 +49,19 @@
 @else
 @php
     // Position classes berdasarkan placement. Pakai absolute positioning
-    // di parent group, dengan inset auto-calculation via flex centering.
+    // di parent group, dengan inset auto-calculation.
+    //
+    // Untuk -end / -start variant: tooltip nempel ke edge trigger
+    // (right-0 / left-0) dan extend ke arah berlawanan, supaya tooltip
+    // panjang gak overflow viewport saat trigger di pojok layout.
     $positionClass = match ($placement) {
         'bottom' => 'top-full left-1/2 -translate-x-1/2 mt-2',
+        'bottom-end' => 'top-full right-0 mt-2',
+        'bottom-start' => 'top-full left-0 mt-2',
         'left' => 'right-full top-1/2 -translate-y-1/2 mr-2',
         'right' => 'left-full top-1/2 -translate-y-1/2 ml-2',
+        'top-end' => 'bottom-full right-0 mb-2',
+        'top-start' => 'bottom-full left-0 mb-2',
         default => 'bottom-full left-1/2 -translate-x-1/2 mb-2', // top
     };
 @endphp
