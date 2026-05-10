@@ -63,7 +63,10 @@ class UiServiceProvider extends ServiceProvider
 
     private function registerBlade(): void
     {
-        Blade::anonymousComponentPath(__DIR__.'/../resources/views/components', 'nawasara-ui');
+        // Guarded — Laravel's view:cache crashes on missing registered paths.
+        if (is_dir(__DIR__.'/../resources/views/components')) {
+            Blade::anonymousComponentPath(__DIR__.'/../resources/views/components', 'nawasara-ui');
+        }
     }
 
     public function registerLivewire(): void
