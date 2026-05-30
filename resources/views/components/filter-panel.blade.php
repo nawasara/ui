@@ -74,7 +74,24 @@
            don't fire it).
          - Esc key closes (a11y).
          - Both close paths fire hide.hs.dropdown → onPanelClose() → flush. --}}
+    {{-- Paksa Preline membuka panel ke bawah, matikan auto-flip ke atas.
+
+         --placement: bottom-start  → preferred placement
+         --flip: false              → matikan auto-flip (saat ruang bawah
+                                       kurang, Preline default flip ke atas;
+                                       panel ini 480px sering bertabrakan
+                                       dengan header pada scroll position
+                                       default karena ada stat-cards di atas
+                                       toolbar)
+         --strategy: fixed          → positioning relatif viewport, bukan
+                                       container (mencegah container yang
+                                       di-clip memotong panel)
+
+         Properti CSS custom Preline dibaca dari computed style, jadi inline
+         `style=""` di-honor; attribute `data-hs-dropdown-*` (yang sempat
+         saya coba) bukan API resmi dan diabaikan. --}}
     <div class="hs-dropdown relative inline-flex [--auto-close:false]"
+         style="--placement: bottom-start; --flip: false; --strategy: fixed;"
          x-on:hide.hs.dropdown="onPanelClose()">
         <button id="{{ $id }}-toggle" type="button"
             class="hs-dropdown-toggle py-2.5 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border shadow-sm focus:outline-none disabled:opacity-50 disabled:pointer-events-none transition-colors"
@@ -161,7 +178,45 @@
                                     <div class="absolute inset-y-0 start-0 flex items-center pointer-events-none ps-2.5">
                                         <x-lucide-search class="size-3.5 text-gray-400 dark:text-neutral-500" />
                                     </div>
+                                    {{-- Focus retention: tiap kali user ketik,
+                                         `optionSearch` berubah → x-for
+                                         (value list buttons) re-render → focus
+                                         browser default melompat ke button
+                                         pertama yang baru di-mount. $nextTick
+                                         + .focus() di @input handler nge-restore
+                                         focus ke search input setelah re-render
+                                         frame berikutnya. --}}
+                                    {{-- Preline HSAccessibilityObserver hijack:
+                                         A singleton listens on document.keydown
+                                         in bubble phase. For every single-letter
+                                         A-Z keypress while focus is inside any
+                                         .hs-dropdown wrapper, it calls
+                                         dropdown.onFirstLetter(key) which:
+                                           1. focuses the first matching button
+                                              (or the first button when no match)
+                                              inside the dropdown menu
+                                           2. calls e.preventDefault() so the
+                                              letter never reaches the input
+                                         Net effect on us: typing in the search
+                                         box yanks focus to the (often
+                                         display:none on desktop) mobile back
+                                         button → activeElement falls back to
+                                         BODY → @input never fires.
+                                         `@keydown.stop` stops propagation in
+                                         the bubble path before the document
+                                         listener sees it. Default browser
+                                         action (text insertion) still happens
+                                         because .stop is stopPropagation only,
+                                         not preventDefault — so x-model's input
+                                         event still fires. The component's own
+                                         Esc-to-close uses window capture phase
+                                         (init() → _escHandler), so it still
+                                         fires before this listener and Esc
+                                         continues to close the panel. --}}
                                     <input type="text" x-model="optionSearch"
+                                        x-ref="optionSearchInput"
+                                        @keydown.stop
+                                        @input="$nextTick(() => $refs.optionSearchInput.focus())"
                                         placeholder="Cari..."
                                         class="py-1.5 ps-8 pe-2 block w-full border border-gray-200 rounded-md text-xs focus:border-emerald-600 focus:ring-emerald-600 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300 dark:placeholder-neutral-500" />
                                 </div>
