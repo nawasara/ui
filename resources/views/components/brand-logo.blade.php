@@ -19,13 +19,29 @@
             <img src="{{ $logoDark }}" alt="{{ $appName }}" class="{{ $height }} w-auto object-contain hidden dark:inline-block" />
         @endif
     @else
-        {{-- Default Nawasara logo (SVG) --}}
-        <svg class="{{ $height }} w-auto" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M1 29.5V16.5C1 9.87258 6.37258 4.5 13 4.5C19.6274 4.5 25 9.87258 25 16.5C25 23.1274 19.6274 28.5 13 28.5H12"
-                class="stroke-emerald-700 dark:stroke-emerald-500" stroke="currentColor" stroke-width="2" />
-            <path d="M5 29.5V16.66C5 12.1534 8.58172 8.5 13 8.5C17.4183 8.5 21 12.1534 21 16.66C21 21.1666 17.4183 24.82 13 24.82H12"
-                class="stroke-emerald-700 dark:stroke-emerald-500" stroke="currentColor" stroke-width="2" />
-            <circle cx="13" cy="16.5214" r="5" class="fill-emerald-700 dark:fill-emerald-500" fill="currentColor" />
+        {{-- Default Nawasara logomark — "nawa" (9) dots evenly ringed around an
+             N. Ring + dots + N use currentColor via Tailwind classes, so one
+             markup serves light and dark (emerald-700 / emerald-500). The 9 dots
+             encode "nawa" (nine) in Nawasara; positions are 40° apart starting
+             from top (computed, not eyeballed). Keep in sync with the static
+             favicon/OG assets in public/ (see brand/nawasara-mark.svg). --}}
+        <svg class="{{ $height }} w-auto" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="19" fill="none" stroke="currentColor" stroke-width="1.4"
+                class="stroke-emerald-700 dark:stroke-emerald-500" opacity="0.4" />
+            <g class="fill-emerald-700 dark:fill-emerald-500" fill="currentColor">
+                <circle cx="24" cy="5" r="2.5" />
+                <circle cx="36.21" cy="9.45" r="2.5" />
+                <circle cx="42.71" cy="20.7" r="2.5" />
+                <circle cx="40.45" cy="33.5" r="2.5" />
+                <circle cx="30.5" cy="41.85" r="2.5" />
+                <circle cx="17.5" cy="41.85" r="2.5" />
+                <circle cx="7.55" cy="33.5" r="2.5" />
+                <circle cx="5.29" cy="20.7" r="2.5" />
+                <circle cx="11.79" cy="9.45" r="2.5" />
+            </g>
+            <path d="M17 31V17L31 31V17" stroke="currentColor" stroke-width="3.6"
+                stroke-linecap="round" stroke-linejoin="round" fill="none"
+                class="stroke-emerald-700 dark:stroke-emerald-500" />
         </svg>
 
         @if ($showName)

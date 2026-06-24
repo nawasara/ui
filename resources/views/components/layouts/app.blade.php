@@ -1,6 +1,5 @@
 @php
     $appName = function_exists('brand') ? brand('app_name', config('app.name')) : config('app.name');
-    $favicon = function_exists('brand') ? brand('favicon') : null;
 @endphp
 <!DOCTYPE html>
 <html lang="en" class="">
@@ -11,9 +10,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('nawasaraTitle', $title ?? $appName)</title>
-    @if ($favicon)
-        <link rel="icon" type="image/png" href="{{ $favicon }}">
-    @endif
+    <x-nawasara-ui::meta-head :title="$title ?? $appName" />
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
