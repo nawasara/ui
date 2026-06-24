@@ -353,7 +353,13 @@
                             });
 
                             // Start (or reset) the idle timer when Preline opens the panel.
-                            root.addEventListener('open.hs.dropdown', bump);
+                            // Also re-scan dimensions on open: a cheap, idempotent
+                            // safety net for the case where the value picker would
+                            // otherwise show empty (e.g. children registered late).
+                            root.addEventListener('open.hs.dropdown', () => {
+                                this.scanDimensions();
+                                bump();
+                            });
 
                             // Class-mutation observer as a backup signal: when the root
                             // gains class 'open', start the idle timer; when it loses
@@ -397,7 +403,15 @@
                             if (attempt > 20) return;
                             setTimeout(() => tryWire(attempt + 1), 50);
                         };
-                        this.$nextTick(() => tryWire());
+                        this.$nextTick(() => {
+                            tryWire();
+                            // Populate dimensions imperatively. After a
+                            // wire:navigate the children's x-init does not run
+                            // (wire:ignore root), so this is the only thing that
+                            // fills the value picker. On first load it just
+                            // re-confirms what x-init already registered.
+                            this.scanDimensions();
+                        });
                     },
 
                     destroy() {
@@ -420,6 +434,27 @@
 
                     isMultiple(model) {
                         return this.multipleModels.includes(model);
+                    },
+
+                    // Imperative dimension discovery. Reads every child group's
+                    // data-fp-dimension attribute and registers it. This is the
+                    // path that survives wire:navigate: the panel root has
+                    // wire:ignore, which stops Alpine from running the children's
+                    // x-init after an SPA page swap, so without this scan the
+                    // dimensions_ registry would stay empty and the value picker
+                    // would render blank. Idempotent via registerDimension's dedup.
+                    scanDimensions() {
+                        const nodes = this.$el.querySelectorAll('[data-fp-dimension]');
+                        nodes.forEach(node => {
+                            const raw = node.getAttribute('data-fp-dimension');
+                            if (!raw) return;
+                            try {
+                                this.registerDimension(JSON.parse(raw));
+                            } catch (e) {
+                                // Malformed payload — skip this group rather than
+                                // break the whole panel.
+                            }
+                        });
                     },
 
                     // Called by x-filter-group children to advertise themselves

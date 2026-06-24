@@ -13,10 +13,28 @@
     }
 @endphp
 
-{{-- Filter group row in the left column of <x-filter-panel>. Registers itself
-     with the parent Alpine instance via x-init, so the parent knows about this
-     dimension and can render its options in the right-hand value picker. --}}
+{{-- Filter group row in the left column of <x-filter-panel>.
+
+     Registration: each group advertises its dimension (model + label + items)
+     to the parent panel two ways, on purpose:
+
+       1. data-fp-dimension attribute (JSON) — read imperatively by the parent's
+          init()/open scan. This is the path that SURVIVES wire:navigate.
+       2. x-init="registerDimension(...)" — fast path on first paint.
+
+     Why both: the parent panel root carries `wire:ignore`, which makes Alpine
+     SKIP per-element directive scanning for nested elements after a
+     wire:navigate page swap. When that happens x-init never runs, so the
+     parent's dimensions_ registry stays empty → the panel opens with an empty
+     value picker (the "panel kosong + dark" bug). The imperative attribute scan
+     in the parent doesn't depend on Alpine processing children, so it always
+     repopulates. registerDimension() is idempotent (dedups by model), so
+     running both paths is safe. --}}
 <button type="button"
+    {{-- Blade's {{ }} html-escapes the JSON (structural quotes → &quot;), so it
+         is attribute-safe; the browser's getAttribute() returns clean JSON that
+         JSON.parse handles, including OPD names with quotes/apostrophes/unicode. --}}
+    data-fp-dimension="{{ json_encode(['model' => $model, 'label' => $label, 'items' => (object) $normalised], JSON_UNESCAPED_UNICODE) }}"
     x-init="registerDimension({ model: @js($model), label: @js($label), items: @js((object) $normalised) })"
     x-on:click="selectDimension({ model: @js($model), label: @js($label), items: @js((object) $normalised) })"
     x-on:mouseenter="selectDimension({ model: @js($model), label: @js($label), items: @js((object) $normalised) })"
