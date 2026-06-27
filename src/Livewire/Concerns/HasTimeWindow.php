@@ -76,6 +76,29 @@ trait HasTimeWindow
      */
     protected bool $resetPageOnWindowChange = true;
 
+    /**
+     * The window a component starts on. Defaults to '7d'. Override in a
+     * component (return 'all', '30d', etc.) to change the initial period —
+     * e.g. Zoom uses 'all' because its data is small and infrequent, so a
+     * rolling 7-day window would hide nearly everything.
+     */
+    protected function defaultTimeWindow(): string
+    {
+        return '7d';
+    }
+
+    /**
+     * Livewire calls mount{TraitName}() automatically on initial mount. Apply
+     * the component's defaultTimeWindow() — but only when the URL hasn't
+     * already supplied one (?w=…), so shareable links keep working.
+     */
+    public function mountHasTimeWindow(): void
+    {
+        if (! request()->has('w')) {
+            $this->window = $this->defaultTimeWindow();
+        }
+    }
+
     public function updatedWindow(): void
     {
         $this->onTimeWindowChanged();
@@ -146,6 +169,10 @@ trait HasTimeWindow
         $now = Carbon::now();
 
         return match ($this->window) {
+            // No date bounds — show everything. Use for datasets that are
+            // small and infrequent (e.g. Zoom meetings/recordings) where a
+            // rolling window hides most rows and confuses against all-time KPIs.
+            'all' => [null, null],
             'today' => [
                 $now->copy()->startOfDay(),
                 $now->copy()->endOfDay(),
