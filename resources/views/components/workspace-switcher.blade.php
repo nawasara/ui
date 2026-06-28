@@ -57,25 +57,31 @@
             [scrollbar-width:thin]
             [scrollbar-color:rgb(209_213_219_/_0.6)_transparent]
             dark:[scrollbar-color:rgb(82_82_82_/_0.6)_transparent]">
-            @forelse ($workspaces as $workspace)
-                @php $isActive = $current && $current['id'] === $workspace['id']; @endphp
-                <a href="{{ $workspace['first_url'] ?? '#' }}" wire:navigate @click="open = false"
-                    class="flex items-center gap-3 px-4 py-2.5 text-sm
-                        {{ $isActive
-                            ? 'bg-emerald-50 text-emerald-800 font-semibold dark:bg-emerald-900/20 dark:text-emerald-400'
-                            : 'text-gray-700 hover:bg-gray-50 dark:text-neutral-300 dark:hover:bg-neutral-700' }}">
-                    <div class="flex items-center justify-center size-8 rounded-lg
-                        {{ $isActive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-gray-100 text-gray-500 dark:bg-neutral-700 dark:text-neutral-400' }}">
-                        <x-dynamic-component :component="$workspace['icon']" class="size-4" />
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="truncate">{{ $workspace['label'] }}</div>
-                        <div class="text-xs text-gray-500 dark:text-neutral-500">{{ $workspace['submenu_count'] }} menu</div>
-                    </div>
-                    @if ($isActive)
-                        <x-lucide-check class="size-4" />
-                    @endif
-                </a>
+            @forelse ($ws->grouped() as $groupLabel => $items)
+                {{-- Group section heading --}}
+                <div class="px-4 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-neutral-500">
+                    {{ $groupLabel }}
+                </div>
+                @foreach ($items as $workspace)
+                    @php $isActive = $current && $current['id'] === $workspace['id']; @endphp
+                    <a href="{{ $workspace['first_url'] ?? '#' }}" wire:navigate @click="open = false"
+                        class="flex items-center gap-3 px-4 py-2.5 text-sm
+                            {{ $isActive
+                                ? 'bg-emerald-50 text-emerald-800 font-semibold dark:bg-emerald-900/20 dark:text-emerald-400'
+                                : 'text-gray-700 hover:bg-gray-50 dark:text-neutral-300 dark:hover:bg-neutral-700' }}">
+                        <div class="flex items-center justify-center size-8 rounded-lg
+                            {{ $isActive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-gray-100 text-gray-500 dark:bg-neutral-700 dark:text-neutral-400' }}">
+                            <x-dynamic-component :component="$workspace['icon']" class="size-4" />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="truncate">{{ $workspace['label'] }}</div>
+                            <div class="text-xs text-gray-500 dark:text-neutral-500">{{ $workspace['submenu_count'] }} menu</div>
+                        </div>
+                        @if ($isActive)
+                            <x-lucide-check class="size-4" />
+                        @endif
+                    </a>
+                @endforeach
             @empty
                 <div class="px-4 py-8 text-center text-sm text-gray-500 dark:text-neutral-400">
                     Tidak ada workspace yang bisa diakses

@@ -19,6 +19,21 @@ use Illuminate\Support\Str;
  */
 class WorkspaceManager
 {
+    /**
+     * Display order of the sidebar groups. A workspace's 'group' key (from its
+     * menu config) places it under one of these headings; anything without a
+     * group falls into 'Lainnya' at the end. Groups with no accessible
+     * workspaces are skipped at render time.
+     */
+    public const GROUP_ORDER = [
+        'Layanan',
+        'Observability',
+        'Keamanan',
+        'Aset & Registry',
+        'Pengaturan',
+        'Lainnya',
+    ];
+
     public function all(): array
     {
         $menus = app()->bound('nawasara.menu') ? app('nawasara.menu') : [];
@@ -143,12 +158,47 @@ class WorkspaceManager
             'id' => $id,
             'label' => $menu['label'] ?? Str::headline($id),
             'icon' => $menu['icon'] ?? 'lucide-box',
+            'group' => $menu['group'] ?? null,
             'permission' => $menu['permission'] ?? null,
             'first_url' => $this->firstAccessibleUrl($menu),
             'submenu_count' => $submenuCount,
             'paths' => $paths,
             'menu' => $menu,
         ];
+    }
+
+    /**
+     * Accessible workspaces organised into sidebar groups.
+     *
+     * Returns an ordered map: group label => list of workspaces, following
+     * GROUP_ORDER. A workspace with no 'group' (or an unknown one) lands in
+     * 'Lainnya'. Within each group, workspaces are sorted by label. Empty
+     * groups are omitted, so the caller can just iterate the result.
+     *
+     * @return array<string, array<int, array>>
+     */
+    public function grouped(): array
+    {
+        $buckets = [];
+
+        foreach ($this->accessible() as $ws) {
+            $group = $ws['group'] ?? null;
+            if (! in_array($group, self::GROUP_ORDER, true)) {
+                $group = 'Lainnya';
+            }
+            $buckets[$group][] = $ws;
+        }
+
+        $ordered = [];
+        foreach (self::GROUP_ORDER as $group) {
+            if (empty($buckets[$group])) {
+                continue;
+            }
+            usort($buckets[$group], fn ($a, $b) => strcasecmp($a['label'], $b['label']));
+            $ordered[$group] = $buckets[$group];
+        }
+
+        return $ordered;
     }
 
     /**

@@ -39,8 +39,17 @@
                     $currentUrl = url()->current();
                     $workspaces = app('nawasara.workspaces');
                     $currentWorkspaceMenu = $workspaces->currentMenu();
-                    // If not in a workspace (Home/root), show all accessible workspace headings.
-                    $menusToRender = $currentWorkspaceMenu ? [$currentWorkspaceMenu] : app('nawasara.menu');
+                    // In a workspace → show only that workspace's submenu (one group,
+                    // no header). At Home/root → show every accessible workspace,
+                    // organised under its group heading.
+                    if ($currentWorkspaceMenu) {
+                        $renderGroups = ['' => [$currentWorkspaceMenu]];
+                    } else {
+                        $renderGroups = [];
+                        foreach ($workspaces->grouped() as $groupLabel => $items) {
+                            $renderGroups[$groupLabel] = array_map(fn ($ws) => $ws['menu'], $items);
+                        }
+                    }
                 @endphp
 
                 <ul class="space-y-3" x-data="{ show: false }" x-init="setTimeout(() => show = true, 10)"
@@ -48,7 +57,13 @@
                     x-transition:enter="transition ease-out duration-200"
                     x-transition:enter-start="opacity-0 translate-x-1"
                     x-transition:enter-end="opacity-100 translate-x-0">
-                    @foreach ($menusToRender as $menu)
+                    @foreach ($renderGroups as $groupLabel => $menusToRender)
+                        @if ($groupLabel !== '')
+                            <li class="px-1 pt-2 first:pt-0 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-neutral-500">
+                                {{ $groupLabel }}
+                            </li>
+                        @endif
+                        @foreach ($menusToRender as $menu)
                         @if (!empty($menu['submenu']))
                             <!-- Section heading -->
                             <li>
@@ -95,6 +110,7 @@
                                 </a>
                             </li>
                         @endif
+                        @endforeach
                     @endforeach
                 </ul>
             </nav>
