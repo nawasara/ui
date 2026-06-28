@@ -38,39 +38,63 @@
             <kbd class="shrink-0 text-[11px] font-medium text-gray-400 dark:text-neutral-500 border border-gray-200 dark:border-neutral-600 rounded px-1.5 py-0.5">Esc</kbd>
         </div>
 
-        {{-- Results --}}
-        <div class="max-h-80 overflow-y-auto py-2">
-            <template x-for="(item, idx) in results" :key="item.url">
-                <a :href="item.url" wire:navigate
-                    @click="close()"
-                    @mouseenter="active = idx"
-                    class="flex items-center gap-3 px-4 py-2.5 text-sm cursor-pointer"
-                    :class="active === idx
-                        ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300'
-                        : 'text-gray-700 hover:bg-gray-50 dark:text-neutral-300 dark:hover:bg-neutral-700/50'">
-                    <span class="flex items-center justify-center size-8 rounded-lg shrink-0 transition-colors"
+        {{-- Results — one flat list (menu first, then data); a section header is
+             rendered whenever the item's group changes. Keyboard nav (active
+             index) runs over the flat `results` array. --}}
+        <div class="max-h-96 overflow-y-auto py-2" x-ref="list">
+            <template x-for="(item, idx) in results" :key="item._key">
+                <div>
+                    {{-- Section header when the group changes --}}
+                    <template x-if="idx === 0 || results[idx - 1].group !== item.group">
+                        <div class="px-4 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-neutral-500"
+                            x-text="item.group"></div>
+                    </template>
+
+                    <a :href="item.url" wire:navigate
+                        @click="close()"
+                        @mouseenter="active = idx"
+                        class="flex items-center gap-3 px-4 py-2.5 text-sm cursor-pointer"
                         :class="active === idx
-                            ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400'
-                            : 'bg-gray-100 text-gray-400 dark:bg-neutral-700 dark:text-neutral-500'">
-                        {{-- Generic page glyph — lucide here is SVG-component only, so
-                             a single inline SVG renders reliably for every item. --}}
-                        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/>
-                            <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
-                        </svg>
-                    </span>
-                    <span class="flex-1 min-w-0">
-                        <span class="block truncate" x-text="item.label"></span>
-                        <span class="block text-xs text-gray-400 dark:text-neutral-500 truncate" x-text="item.group"></span>
-                    </span>
-                    <x-lucide-corner-down-left class="size-3.5 text-gray-300 dark:text-neutral-600"
-                        x-show="active === idx" />
-                </a>
+                            ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300'
+                            : 'text-gray-700 hover:bg-gray-50 dark:text-neutral-300 dark:hover:bg-neutral-700/50'">
+                        <span class="flex items-center justify-center size-8 rounded-lg shrink-0 transition-colors"
+                            :class="active === idx
+                                ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400'
+                                : 'bg-gray-100 text-gray-400 dark:bg-neutral-700 dark:text-neutral-500'">
+                            {{-- Menu items get a page glyph; data items a database glyph.
+                                 lucide here is SVG-component only, so inline SVG renders reliably. --}}
+                            <svg x-show="item._type === 'menu'" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/>
+                                <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+                            </svg>
+                            <svg x-show="item._type === 'data'" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                                <path d="M3 5v14a9 3 0 0 0 18 0V5"/>
+                                <path d="M3 12a9 3 0 0 0 18 0"/>
+                            </svg>
+                        </span>
+                        <span class="flex-1 min-w-0">
+                            <span class="block truncate" x-text="item.label"></span>
+                            <span class="block text-xs text-gray-400 dark:text-neutral-500 truncate" x-text="item.sublabel"></span>
+                        </span>
+                        <x-lucide-corner-down-left class="size-3.5 text-gray-300 dark:text-neutral-600"
+                            x-show="active === idx" />
+                    </a>
+                </div>
             </template>
 
+            {{-- Loading (data fetch in flight) --}}
+            <div x-show="loading" class="px-4 py-3 flex items-center gap-2 text-xs text-gray-400 dark:text-neutral-500">
+                <svg class="size-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke-linecap="round"/>
+                </svg>
+                Mencari data…
+            </div>
+
             {{-- Empty state --}}
-            <div x-show="results.length === 0" class="px-4 py-10 text-center">
+            <div x-show="results.length === 0 && !loading" class="px-4 py-10 text-center">
                 <x-lucide-search-x class="size-6 mx-auto text-gray-300 dark:text-neutral-600 mb-2" />
                 <p class="text-sm text-gray-500 dark:text-neutral-400">
                     Tidak ada hasil untuk "<span x-text="query"></span>"
@@ -104,13 +128,30 @@
                 window.Alpine.store('palette', { open: false });
 
                 window.Alpine.data('commandPalette', (items) => ({
-                    items: items || [],
+                    // Menu items (client-side, instant). Normalize shape: data
+                    // results use {label, sublabel, url}; menus carry their parent
+                    // workspace in `group` and have no sublabel of their own.
+                    items: (items || []).map((it, i) => ({
+                        _type: 'menu',
+                        _key: 'm' + i,
+                        group: 'Menu',
+                        label: it.label,
+                        sublabel: it.group,   // parent workspace as context line
+                        url: it.url,
+                    })),
                     query: '',
+                    menuResults: [],
+                    dataResults: [],
                     results: [],
                     active: 0,
+                    loading: false,
 
                     init() {
-                        this.results = this.rank('');
+                        this.menuResults = this.rank('');
+                        this.recombine();
+
+                        this._debounce = null;
+                        this._abort = null;
 
                         // Global ⌘K / Ctrl+K. Capture so we win before the
                         // browser's own find-bar on some platforms.
@@ -128,7 +169,10 @@
                             if (open) {
                                 this.query = '';
                                 this.active = 0;
-                                this.results = this.rank('');
+                                this.dataResults = [];
+                                this.loading = false;
+                                this.menuResults = this.rank('');
+                                this.recombine();
                                 this.$nextTick(() => this.$refs.input && this.$refs.input.focus());
                             }
                         });
@@ -138,46 +182,99 @@
                         // Clean up the global listener on Alpine teardown so it
                         // doesn't accumulate across wire:navigate.
                         if (this._key) window.removeEventListener('keydown', this._key);
+                        if (this._abort) this._abort.abort();
+                        if (this._debounce) clearTimeout(this._debounce);
                     },
 
                     openPalette() { this.$store.palette.open = true; },
                     close() { this.$store.palette.open = false; },
 
                     onInput() {
-                        this.results = this.rank(this.query);
+                        // Menu filter is instant.
+                        this.menuResults = this.rank(this.query);
+                        this.recombine();
                         this.active = 0;
+
+                        // Data search is debounced + cancellable.
+                        const q = this.query.trim();
+                        if (this._debounce) clearTimeout(this._debounce);
+                        if (q.length < 2) {
+                            this.dataResults = [];
+                            this.loading = false;
+                            if (this._abort) this._abort.abort();
+                            this.recombine();
+                            return;
+                        }
+                        this.loading = true;
+                        this._debounce = setTimeout(() => this.fetchData(q), 250);
+                    },
+
+                    fetchData(q) {
+                        if (this._abort) this._abort.abort();
+                        this._abort = new AbortController();
+                        fetch('{{ url('nawasara-search/query') }}?q=' + encodeURIComponent(q), {
+                            headers: { 'Accept': 'application/json' },
+                            signal: this._abort.signal,
+                        })
+                            .then((r) => r.ok ? r.json() : { groups: [] })
+                            .then((data) => {
+                                const out = [];
+                                (data.groups || []).forEach((g, gi) => {
+                                    (g.items || []).forEach((it, ii) => {
+                                        out.push({
+                                            _type: 'data',
+                                            _key: 'd' + gi + '-' + ii,
+                                            group: g.label,
+                                            label: it.label,
+                                            sublabel: it.sublabel || '',
+                                            url: it.url,
+                                        });
+                                    });
+                                });
+                                this.dataResults = out;
+                                this.loading = false;
+                                this.recombine();
+                            })
+                            .catch((e) => {
+                                if (e.name !== 'AbortError') { this.loading = false; }
+                            });
+                    },
+
+                    // Flatten menu (first) + data (after) into one keyboard-navigable list.
+                    recombine() {
+                        this.results = [...this.menuResults, ...this.dataResults];
+                        if (this.active >= this.results.length) this.active = 0;
                     },
 
                     /**
-                     * Rank items against the query. Prefix matches on the label
-                     * rank highest, then label substring, then group substring.
-                     * Empty query returns the first N items as-is. Cap at 10.
+                     * Rank MENU items against the query (client-side). Prefix on
+                     * label highest, then label substring, then workspace match.
+                     * Empty query returns the first N. Cap at 8.
                      */
                     rank(q) {
                         q = (q || '').trim().toLowerCase();
-                        if (q === '') return this.items.slice(0, 10);
+                        if (q === '') return this.items.slice(0, 8);
 
                         const scored = [];
                         for (const item of this.items) {
                             const label = (item.label || '').toLowerCase();
-                            const group = (item.group || '').toLowerCase();
+                            const ctx = (item.sublabel || '').toLowerCase();
                             let score = 0;
                             if (label.startsWith(q)) score = 100;
                             else if (label.includes(q)) score = 60;
-                            else if (group.includes(q)) score = 30;
-                            else if ((group + ' ' + label).includes(q)) score = 20;
+                            else if (ctx.includes(q)) score = 30;
+                            else if ((ctx + ' ' + label).includes(q)) score = 20;
                             if (score > 0) scored.push({ item, score });
                         }
                         scored.sort((a, b) => b.score - a.score);
-                        return scored.slice(0, 10).map((s) => s.item);
+                        return scored.slice(0, 8).map((s) => s.item);
                     },
 
                     move(delta) {
                         if (this.results.length === 0) return;
                         this.active = (this.active + delta + this.results.length) % this.results.length;
-                        // keep active row in view
                         this.$nextTick(() => {
-                            const el = this.$el.querySelectorAll('[wire\\:navigate]')[this.active];
+                            const el = this.$el.querySelectorAll('a[wire\\:navigate]')[this.active];
                             if (el) el.scrollIntoView({ block: 'nearest' });
                         });
                     },
@@ -186,7 +283,6 @@
                         const item = this.results[this.active];
                         if (!item) return;
                         this.close();
-                        // SPA navigation — no full reload.
                         if (window.Livewire && window.Livewire.navigate) {
                             window.Livewire.navigate(item.url);
                         } else {
