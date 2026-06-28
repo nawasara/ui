@@ -33,7 +33,7 @@
             <x-lucide-search class="size-5 text-gray-400 dark:text-neutral-500 shrink-0" />
             <input x-ref="input" x-model="query" @input="onInput()" type="text"
                 placeholder="Cari menu atau halaman..."
-                class="flex-1 py-3.5 bg-transparent border-0 focus:ring-0 text-sm text-gray-800 dark:text-neutral-100 placeholder-gray-400 dark:placeholder-neutral-500"
+                class="flex-1 py-4 bg-transparent !border-0 !ring-0 !outline-none focus:!border-0 focus:!ring-0 focus:!outline-none shadow-none text-base text-gray-800 dark:text-neutral-100 placeholder-gray-400 dark:placeholder-neutral-500"
                 autocomplete="off" spellcheck="false" />
             <kbd class="shrink-0 text-[11px] font-medium text-gray-400 dark:text-neutral-500 border border-gray-200 dark:border-neutral-600 rounded px-1.5 py-0.5">Esc</kbd>
         </div>
@@ -48,11 +48,17 @@
                     :class="active === idx
                         ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300'
                         : 'text-gray-700 hover:bg-gray-50 dark:text-neutral-300 dark:hover:bg-neutral-700/50'">
-                    <span class="flex items-center justify-center size-7 rounded-lg shrink-0"
+                    <span class="flex items-center justify-center size-8 rounded-lg shrink-0 transition-colors"
                         :class="active === idx
-                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
-                            : 'bg-gray-100 text-gray-500 dark:bg-neutral-700 dark:text-neutral-400'">
-                        <i :class="(item.icon || 'lucide-arrow-right') + ' text-base'"></i>
+                            ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400'
+                            : 'bg-gray-100 text-gray-400 dark:bg-neutral-700 dark:text-neutral-500'">
+                        {{-- Generic page glyph — lucide here is SVG-component only, so
+                             a single inline SVG renders reliably for every item. --}}
+                        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/>
+                            <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+                        </svg>
                     </span>
                     <span class="flex-1 min-w-0">
                         <span class="block truncate" x-text="item.label"></span>
