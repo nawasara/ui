@@ -202,6 +202,43 @@ class WorkspaceManager
     }
 
     /**
+     * Flat, permission-filtered list of every navigable page for the command
+     * palette (⌘K). One entry per accessible submenu item, carrying its parent
+     * workspace label so the palette can show "Hibah › Pengajuan" context.
+     *
+     * Both the workspace permission and the per-item permission are honoured,
+     * so an item a user can't reach never appears in search.
+     *
+     * @return array<int, array{label:string, url:string, icon:?string, group:string}>
+     */
+    public function navItems(): array
+    {
+        $user = auth()->user();
+        $items = [];
+
+        foreach ($this->accessible() as $ws) {
+            $wsLabel = $ws['label'];
+            foreach ($ws['menu']['submenu'] ?? [] as $sub) {
+                if (empty($sub['url'])) {
+                    continue;
+                }
+                $perm = $sub['permission'] ?? null;
+                if ($perm && ! ($user && $user->can($perm))) {
+                    continue;
+                }
+                $items[] = [
+                    'label' => $sub['label'] ?? '',
+                    'url' => $sub['url'],
+                    'icon' => $sub['icon'] ?? null,
+                    'group' => $wsLabel,
+                ];
+            }
+        }
+
+        return $items;
+    }
+
+    /**
      * Extract normalized URL paths (no host, no leading slash) from all submenu
      * items. Used both for prefix detection and for matching current URL.
      */
