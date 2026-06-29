@@ -32,7 +32,7 @@
 </head>
 
 <body>
-    <div class="min-h-screen bg-gray-100 dark:bg-neutral-700">
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-emerald-50/40 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-900">
         {{ $slot }}
     </div>
 
