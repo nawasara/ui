@@ -29,6 +29,10 @@
 
         {{-- Right cluster --}}
         <div class="ms-auto flex items-center gap-1">
+            {{-- What's New badge (owned by nawasara-core; guarded so UI doesn't hard-depend on it) --}}
+            @if (class_exists(\Nawasara\Core\Livewire\Changelog\Badge::class))
+                @livewire('nawasara-core.changelog.badge')
+            @endif
             <x-nawasara-ui::dark-mode-toggle />
             @livewire('nawasara-ui.shared-components.account-dropdown')
         </div>
