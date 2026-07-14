@@ -56,6 +56,12 @@
 
 <body x-data class="bg-gray-50 dark:bg-neutral-900">
     <livewire:nawasara-ui.shared-components.topbar />
+
+    {{-- Login "What's New" modal — auto-pops once after a major update so
+         users notice new features. Renders nothing when there's nothing new. --}}
+    @auth
+        @livewire('nawasara-core.changelog.whats-new')
+    @endauth
     @isset($breadcrumb)
         {{ $breadcrumb }}
     @elseif ($autoBreadcrumbItems)
