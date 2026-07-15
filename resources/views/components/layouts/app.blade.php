@@ -7,6 +7,26 @@
 <head>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    {{-- Dark-mode anti-flash + wire:navigate resilience.
+         The dark class on <html> is what actually themes the page. Preline
+         normally sets it, but Preline only self-inits on the window "load"
+         event — which never fires on wire:navigate — so navigating left the
+         page stuck in light mode. This applies the class from localStorage
+         (a) inline before first paint (no flash on full load), and
+         (b) again on every livewire:navigated, independent of Preline, so SPA
+         navigation keeps the correct theme even if Preline hasn't re-inited. --}}
+    <script>
+        (function () {
+            var apply = function () {
+                var dark = localStorage.getItem('theme') === 'dark'
+                    || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                document.documentElement.classList.toggle('dark', dark);
+            };
+            apply();
+            document.addEventListener('livewire:navigated', apply);
+        })();
+    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('nawasaraTitle', $title ?? $appName)</title>
