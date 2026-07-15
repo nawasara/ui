@@ -274,6 +274,12 @@
              <div data-filter-chips></div>
          If no target exists, chips fall back to rendering inline (after the
          filter button) which preserves the previous behaviour. --}}
+    {{-- Only mount the teleport when a [data-filter-chips] target actually
+         exists. x-teleport has no null guard — a missing target throws
+         "Cannot read properties of null (reading 'appendChild')" during
+         Alpine initTree and freezes wire:navigate. hasChipTarget is set in
+         init(). See reference_alpine_magic_wire_navigate. --}}
+    <template x-if="hasChipTarget">
     <template x-teleport="[data-filter-chips]">
         <template x-if="chips.length > 0">
             <div class="flex flex-wrap items-center gap-2">
@@ -292,6 +298,7 @@
                 </template>
             </div>
         </template>
+    </template>
     </template>
 </div>
 
