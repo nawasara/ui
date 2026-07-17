@@ -26,6 +26,14 @@
      */
     'dimensions' => [],
     'debounceMs' => 3000,
+    /**
+     * Whether the panel renders its own active-filter chips (teleported into
+     * [data-filter-chips]). Set false when the consumer renders chips itself
+     * server-side (durable across Livewire morphs — the teleported chips can be
+     * orphaned by a pagination morph and appear to reset). Default true keeps
+     * existing pages unchanged.
+     */
+    'showChips' => true,
 ])
 
 @php
@@ -278,7 +286,9 @@
          exists. x-teleport has no null guard — a missing target throws
          "Cannot read properties of null (reading 'appendChild')" during
          Alpine initTree and freezes wire:navigate. hasChipTarget is set in
-         init(). See reference_alpine_magic_wire_navigate. --}}
+         init(). See reference_alpine_magic_wire_navigate.
+         Skipped entirely when showChips=false (consumer renders chips itself). --}}
+    @if ($showChips)
     <template x-if="hasChipTarget">
     <template x-teleport="[data-filter-chips]">
         <template x-if="chips.length > 0">
@@ -300,6 +310,7 @@
         </template>
     </template>
     </template>
+    @endif
 </div>
 
 {{-- The Alpine.data('filterPanel', ...) definition lives in resources/js/app.js
