@@ -1,3 +1,14 @@
+{{--
+    Search input — kotak pencarian yang terikat ke properti Livewire.
+
+    Mengikat lewat wire:model.live.debounce, jadi pencarian berjalan setelah
+    pengetikan berhenti sejenak alih-alih pada tiap ketukan. Itu menjaga jumlah
+    permintaan tetap wajar tanpa membuat pengguna menunggu sampai fokus lepas.
+
+    Pemakaian:
+        <x-nawasara-ui::search-input model="search" placeholder="Cari nama…" />
+        <x-nawasara-ui::search-input model="q" :debounce="500" variant="inline" />
+--}}
 @props([
     /**
      * Wire model name on the parent Livewire component. The input binds via

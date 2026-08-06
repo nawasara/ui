@@ -1,3 +1,15 @@
+{{--
+    Page breadcrumb — jejak navigasi di atas judul.
+
+    Untuk halaman Livewire, pakai komponen breadcrumb bersama lewat slot
+    breadcrumb di layout — itu yang dipakai hampir semua halaman.
+
+    Pemakaian:
+        <x-nawasara-ui::page.breadcrumb :items="[
+            ['label' => 'Registry', 'url' => '#'],
+            ['label' => 'OPD'],
+        ]" />
+--}}
 <nav class="flex text-sm text-gray-500" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-1">
         @foreach ($items as $item)

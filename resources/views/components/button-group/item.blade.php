@@ -1,3 +1,9 @@
+{{--
+    Satu tombol di dalam button-group. Tidak dipakai sendirian.
+
+    Pemakaian:
+        <x-nawasara-ui::button-group.item>Mingguan</x-nawasara-ui::button-group.item>
+--}}
 @props([
     'href' => '#',
 ])

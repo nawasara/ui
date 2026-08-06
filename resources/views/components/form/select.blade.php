@@ -1,3 +1,10 @@
+{{--
+    Form select — dropdown pilihan.
+
+    Pemakaian:
+        <x-nawasara-ui::form.select label="OPD" wire:model="opdId"
+            :options="$opdOptions" placeholder="— pilih OPD —" />
+--}}
 @props([
     'label' => null,
     'name' => null,

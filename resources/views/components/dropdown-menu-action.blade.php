@@ -1,3 +1,18 @@
+{{--
+    Dropdown menu aksi — menu bertitik-tiga untuk aksi baris yang jumlahnya
+    banyak.
+
+    Item memakai Livewire.dispatch di balik layar, bukan wire:click langsung,
+    karena Preline memindahkan menu ke luar komponen saat dibuka dan itu
+    memutus ikatan wire:click.
+
+    Pemakaian:
+        <x-nawasara-ui::dropdown-menu-action :items="[
+            ['type' => 'click', 'label' => 'Ubah', 'wire:click' => 'edit(1)', 'icon' => 'lucide-pencil'],
+            ['type' => 'click', 'label' => 'Hapus', 'wire:click' => 'destroy(1)', 'icon' => 'lucide-trash-2',
+             'confirm' => 'Hapus data ini?'],
+        ]" />
+--}}
 @props(['id', 'items' => [], 'modalName' => null])
 
 @php

@@ -1,3 +1,12 @@
+{{--
+    Time window — pemilih rentang waktu (hari ini, 7 hari, 30 hari, kustom).
+
+    Mode kustom memakai flatpickr. Dipasangkan dengan trait HasTimeWindow di
+    komponen Livewire, yang menyediakan properti $window, $from, dan $to.
+
+    Pemakaian:
+        <x-nawasara-ui::time-window />
+--}}
 @props([
     /**
      * Currently active preset key. One of:

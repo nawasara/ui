@@ -1,3 +1,11 @@
+{{--
+    Workspace switcher — dropdown pindah antar workspace di topbar.
+
+    Membaca daftarnya dari WorkspaceManager, jadi tidak menerima prop apa pun.
+
+    Pemakaian:
+        <x-nawasara-ui::workspace-switcher />
+--}}
 @php
     /** @var \Nawasara\Ui\Services\WorkspaceManager $ws */
     $ws = app('nawasara.workspaces');

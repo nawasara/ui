@@ -1,3 +1,15 @@
+{{--
+    Filter bar — baris di atas tabel berisi pencarian, panel filter, dan chip
+    filter aktif.
+
+    Pemakaian:
+        <x-nawasara-ui::filter-bar>
+            <x-nawasara-ui::search-input model="search" />
+            <x-slot:chips>
+                <x-nawasara-ui::filter-chip label="Aktif" model="statusFilter" />
+            </x-slot:chips>
+        </x-nawasara-ui::filter-bar>
+--}}
 @props([
     'searchPlaceholder' => 'Cari ...',
     'searchModel' => null,

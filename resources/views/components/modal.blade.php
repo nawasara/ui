@@ -1,3 +1,26 @@
+{{--
+    Modal — dialog yang dikelola Alpine, dibuka lewat event.
+
+    Buka dari blade dengan $dispatch('open-modal', { id: '...' }); dari Livewire
+    pakai $this->dispatch('modal-open:<id>') — id ada di NAMA event, bukan di
+    payload. Mengirim 'open-modal' dari sisi Livewire tidak akan bekerja.
+
+    Pemakaian:
+        <x-nawasara-ui::button x-on:click="$dispatch('open-modal', { id: 'edit-user' })">
+            Ubah
+        </x-nawasara-ui::button>
+
+        <x-nawasara-ui::modal id="edit-user" title="Ubah Pengguna" maxWidth="lg">
+            ... isi ...
+            <x-slot:footer>
+                <x-nawasara-ui::button color="primary" wire:click="save">Simpan</x-nawasara-ui::button>
+            </x-slot:footer>
+        </x-nawasara-ui::modal>
+
+    Catatan: slot footer dirender DI LUAR div konten, jadi tombol submit di
+    footer berada di luar <form> dan wire:submit tidak akan terpicu. Pakai
+    wire:click pada tombol footer.
+--}}
 @props([
     'id' => null,
     'title' => null,

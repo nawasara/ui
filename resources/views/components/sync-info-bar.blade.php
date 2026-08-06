@@ -1,3 +1,10 @@
+{{--
+    Sync info bar — baris kecil berisi waktu sinkronisasi terakhir, jumlah
+    perubahan tertunda, dan tautan ke log.
+
+    Pemakaian:
+        <x-nawasara-ui::sync-info-bar service="keycloak" />
+--}}
 @props([
     /**
      * Human-friendly last-sync timestamp ("3 menit yang lalu", etc).

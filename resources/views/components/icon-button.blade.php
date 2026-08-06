@@ -1,3 +1,17 @@
+{{--
+    Icon button — tombol hanya-ikon dengan tooltip.
+
+    Untuk aksi baris tabel (ubah, hapus, muat ulang) yang tidak cukup ruang
+    untuk tombol berteks. Tooltip wajib: ikon tanpa keterangan memaksa pengguna
+    menebak.
+
+    Pemakaian:
+        <x-nawasara-ui::icon-button icon="refresh-cw" tooltip="Muat ulang" wire:click="refresh" />
+        <x-nawasara-ui::icon-button icon="trash-2" tooltip="Hapus" placement="left" />
+
+    Catatan: di kolom sticky terakhir, pakai placement="left" — tooltip yang
+    keluar ke kanan akan terpotong oleh konteks tumpukan sticky cell.
+--}}
 @props([
     /**
      * Lucide icon name (without 'lucide-' prefix is fine, we add it).

@@ -1,3 +1,12 @@
+{{--
+    Skeleton — kotak abu-abu berdenyut sebagai pengganti isi yang sedang dimuat.
+
+    Lebih baik daripada spinner untuk isi yang bentuknya sudah diketahui:
+    tata letak tidak melompat saat data tiba.
+
+    Pemakaian:
+        <x-nawasara-ui::skeleton class="h-4 w-3/4" />
+--}}
 @props([
     'shape' => 'box',     // box | text | circle | card
     'width' => 'full',    // full | 1/2 | 1/3 | etc tailwind fractions, or arbitrary like '32'

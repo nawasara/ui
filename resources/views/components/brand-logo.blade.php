@@ -1,3 +1,9 @@
+{{--
+    Brand logo — logo Nawasara, menyesuaikan warna di mode gelap.
+
+    Pemakaian:
+        <x-nawasara-ui::brand-logo height="h-8" />
+--}}
 @props([
     'height' => 'h-8',
     'showName' => true,

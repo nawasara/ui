@@ -1,3 +1,19 @@
+{{--
+    Filter panel — satu panel berisi SEMUA filter halaman.
+
+    Pakai satu panel ini, bukan beberapa filter-dropdown berdiri sendiri.
+    Nilai single-select berupa skalar, multi-select berupa array; sebutkan yang
+    multi lewat prop $multiple.
+
+    Pemakaian:
+        <x-nawasara-ui::filter-panel
+            :state="['status' => $status, 'opd' => $opd]"
+            :multiple="['opd']">
+            <x-nawasara-ui::filter-group model="status" label="Status"
+                :options="['active' => 'Aktif', 'inactive' => 'Nonaktif']" />
+            <x-nawasara-ui::filter-group model="opd" label="OPD" :options="$opdOptions" />
+        </x-nawasara-ui::filter-panel>
+--}}
 @props([
     'label' => 'Filter',
     /**

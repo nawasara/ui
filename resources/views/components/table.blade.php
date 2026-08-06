@@ -1,3 +1,29 @@
+{{--
+    Table — tabel data dengan header, slot body, dan footer opsional.
+
+    Isi baris dikirim lewat <x-slot:table>, jadi konsumen bebas mengatur
+    kolomnya sendiri. Kolom aksi sebaiknya memakai stickyLast supaya tidak
+    hilang saat tabel digeser ke samping di layar sempit.
+
+    Pemakaian:
+        <x-nawasara-ui::table :headers="['Nama', 'Status', '']" stickyLast>
+            <x-slot:table>
+                @foreach ($rows as $row)
+                    <tr>
+                        <td class="px-4 py-2.5">{{ $row->name }}</td>
+                        <td class="px-4 py-2.5">{{ $row->status }}</td>
+                        <td class="px-4 py-2.5 text-right">
+                            <x-nawasara-ui::icon-button icon="pencil" tooltip="Ubah" placement="left" />
+                        </td>
+                    </tr>
+                @endforeach
+            </x-slot:table>
+        </x-nawasara-ui::table>
+
+    Catatan: kalau kolom terakhir berisi icon-button bertooltip, pakai
+    placement="left" — sticky cell membuat konteks tumpukan yang memotong
+    tooltip yang keluar ke kanan.
+--}}
 @props([
     'title' => '',
     'headers' => [],

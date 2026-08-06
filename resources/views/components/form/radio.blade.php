@@ -1,3 +1,10 @@
+{{--
+    Form radio — pilihan tunggal dari beberapa opsi.
+
+    Pemakaian:
+        <x-nawasara-ui::form.radio wire:model="tipe" value="local" label="Lokal" />
+        <x-nawasara-ui::form.radio wire:model="tipe" value="sso" label="SSO" />
+--}}
 @props(['label', 'name', 'value'])
 
 <div class="flex items-center gap-2">

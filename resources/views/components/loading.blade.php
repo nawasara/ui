@@ -1,3 +1,10 @@
+{{--
+    Loading — indikator pemuatan berputar.
+
+    Pemakaian:
+        <x-nawasara-ui::loading />
+        <div wire:loading><x-nawasara-ui::loading /></div>
+--}}
 <div>
     {{-- Be like water. --}}
     <div class="flex items-center justify-end">

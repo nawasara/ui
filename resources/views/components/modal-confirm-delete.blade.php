@@ -1,3 +1,13 @@
+{{--
+    Modal konfirmasi hapus — dialog siap pakai untuk aksi merusak.
+
+    Pemakaian:
+        <x-nawasara-ui::modal-confirm-delete
+            id="hapus-opd"
+            title="Hapus OPD?"
+            message="Aset yang tertaut ikut terhapus. Tindakan ini tidak bisa dibatalkan."
+            wire:click="destroy" />
+--}}
 <div x-data="{
     id: null,
     name: '',

@@ -1,3 +1,13 @@
+{{--
+    Command palette — pencarian navigasi cepat, dibuka dengan Ctrl/Cmd + K.
+
+    Sudah dipasang di layout aplikasi. Menu package baru langsung muncul di
+    sini begitu config/menu.php benar dan permission-nya ter-seed — tidak ada
+    pendaftaran terpisah.
+
+    Pemakaian:
+        <x-nawasara-ui::command-palette />
+--}}
 @php
     /** Flat, permission-filtered nav items for the ⌘K palette. */
     $paletteItems = app('nawasara.workspaces')->navItems();

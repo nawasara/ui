@@ -1,3 +1,12 @@
+{{--
+    Filter group — satu kelompok pilihan di dalam filter-panel.
+
+    Tidak berdiri sendiri; selalu di dalam <x-nawasara-ui::filter-panel>.
+
+    Pemakaian:
+        <x-nawasara-ui::filter-group model="status" label="Status"
+            :options="['open' => 'Terbuka', 'closed' => 'Selesai']" />
+--}}
 @props([
     'label' => '',
     'model' => null,

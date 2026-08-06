@@ -1,3 +1,13 @@
+{{--
+    Filter dropdown — satu filter berdiri sendiri di luar filter-panel.
+
+    Untuk halaman dengan filter tunggal. Kalau filternya lebih dari satu,
+    pakai filter-panel supaya tidak berjajar memenuhi toolbar.
+
+    Pemakaian:
+        <x-nawasara-ui::filter-dropdown label="Status" model="statusFilter"
+            :items="['active' => 'Aktif', 'inactive' => 'Nonaktif']" />
+--}}
 @props([
     'label' => 'Filter',
     'items' => [],

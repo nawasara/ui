@@ -1,3 +1,10 @@
+{{--
+    Form textarea — isian teks beberapa baris.
+
+    Pemakaian:
+        <x-nawasara-ui::form.textarea label="Catatan" wire:model="notes" :rows="3"
+            hint="Opsional." />
+--}}
 @props([
     'label' => null,
     'name' => null,

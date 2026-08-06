@@ -1,3 +1,13 @@
+{{--
+    Bulk action bar — baris aksi yang muncul saat ada baris tabel terpilih.
+
+    Pemakaian:
+        <x-nawasara-ui::bulk-action-bar :count="count($selected)">
+            <x-nawasara-ui::button color="danger" size="sm" wire:click="deleteSelected">
+                Hapus terpilih
+            </x-nawasara-ui::button>
+        </x-nawasara-ui::bulk-action-bar>
+--}}
 @props([
     /**
      * Server-side count (Livewire). Used in PHP-driven mode where the

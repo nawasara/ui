@@ -1,3 +1,13 @@
+{{--
+    Page container — pembungkus terluar isi halaman, mengatur lebar dan padding.
+
+    Setiap halaman sebaiknya dimulai dengan ini.
+
+    Pemakaian:
+        <x-nawasara-ui::page.container>
+            ... isi halaman ...
+        </x-nawasara-ui::page.container>
+--}}
 <div class="container mx-auto px-4 py-6">
     <div class="flex flex-col gap-4">
         {{-- Breadcrumb --}}

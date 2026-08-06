@@ -1,3 +1,17 @@
+{{--
+    Page header — judul halaman, deskripsi, badge jumlah, dan zona aksi di kanan.
+
+    Dipakai di paling atas tiap halaman, di dalam page.container. Slot default
+    berisi tombol aksi (filter, ekspor, tambah) yang tampil rata kanan.
+
+    Pemakaian:
+        <x-nawasara-ui::page-header
+            title="Daftar OPD"
+            description="Organisasi perangkat daerah yang terdaftar."
+            :count="$rows->total().' OPD'">
+            <x-nawasara-ui::button color="primary">Tambah</x-nawasara-ui::button>
+        </x-nawasara-ui::page-header>
+--}}
 @props([
     /**
      * Page title (left side, large heading).

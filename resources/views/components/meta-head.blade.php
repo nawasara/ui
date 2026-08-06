@@ -1,3 +1,11 @@
+{{--
+    Meta head — tag meta halaman (judul, deskripsi, favicon).
+
+    Dipakai di dalam <head> oleh layout; jarang dipanggil langsung.
+
+    Pemakaian:
+        <x-nawasara-ui::meta-head title="Daftar OPD" />
+--}}
 @props([
     'title' => null,
     'description' => 'Superapp pemerintahan — monitoring, manajemen aset, dan layanan terintegrasi dalam satu platform.',

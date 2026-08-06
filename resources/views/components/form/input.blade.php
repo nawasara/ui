@@ -1,3 +1,19 @@
+{{--
+    Form input — kolom isian teks, angka, tanggal, atau kata sandi.
+
+    Tidak punya pembungkus <div> sendiri: label dan input keluar sebagai
+    saudara sejajar. Di dalam grid, SELALU bungkus dengan <div>, kalau tidak
+    grid akan menghitungnya sebagai dua sel.
+
+    Pemakaian:
+        <div><x-nawasara-ui::form.input label="Nama" wire:model="name" /></div>
+
+        <x-nawasara-ui::form.input type="password" label="Kata Sandi"
+            usePasswordField="true" useGenPassword="true" wire:model="password" />
+
+    Catatan: tidak punya prop hint (hanya form.select dan form.textarea yang
+    punya) — untuk teks bantuan, tulis <p> sendiri di bawahnya.
+--}}
 @props([
     'disabled' => false,
     'autofocus' => false,

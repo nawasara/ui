@@ -1,3 +1,12 @@
+{{--
+    Filter chip — penanda filter aktif, bisa diklik untuk melepasnya.
+
+    Ditaruh di slot chips filter-bar supaya pengguna melihat filter apa yang
+    sedang berlaku tanpa membuka panelnya.
+
+    Pemakaian:
+        <x-nawasara-ui::filter-chip label="Status: Aktif" model="statusFilter" />
+--}}
 @props([
     'label' => '',
     'model' => null,

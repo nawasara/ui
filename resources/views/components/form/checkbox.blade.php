@@ -1,3 +1,9 @@
+{{--
+    Form checkbox — kotak centang tunggal.
+
+    Pemakaian:
+        <x-nawasara-ui::form.checkbox wire:model="aktif" label="Aktifkan" />
+--}}
 @props(['label' => null, 'name' => null, 'value' => 1])
 
 @php

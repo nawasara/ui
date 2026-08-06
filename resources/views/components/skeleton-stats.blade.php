@@ -1,3 +1,9 @@
+{{--
+    Skeleton stat card — kerangka baris kartu statistik selama data dimuat.
+
+    Pemakaian:
+        <x-nawasara-ui::skeleton-stats :count="4" />
+--}}
 @props([
     'cards' => 4,        // jumlah card yang diskeleton (default match hero stats grid)
     'cols' => 4,         // kolom grid lg (1..6 valid)

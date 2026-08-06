@@ -1,3 +1,9 @@
+{{--
+    Export button — tombol unduh dengan pilihan format.
+
+    Pemakaian:
+        <x-nawasara-ui::export-button :formats="['csv', 'xlsx']" wire:click="export" />
+--}}
 @props([
     /**
      * Wire method on the parent Livewire component to call. The method receives

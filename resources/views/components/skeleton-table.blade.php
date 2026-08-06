@@ -1,3 +1,11 @@
+{{--
+    Skeleton tabel — kerangka baris tabel selama data dimuat.
+
+    Pemakaian:
+        <div wire:loading.delay>
+            <x-nawasara-ui::skeleton-table :rows="5" :cols="4" />
+        </div>
+--}}
 @props([
     'rows' => 5,
     'cols' => 5,

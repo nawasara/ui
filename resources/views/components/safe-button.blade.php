@@ -1,3 +1,13 @@
+{{--
+    Safe button — tombol yang meminta konfirmasi sebelum menjalankan aksinya.
+
+    Untuk aksi merusak yang tidak cukup penting untuk modal penuh tapi terlalu
+    berisiko untuk sekali klik.
+
+    Pemakaian:
+        <x-nawasara-ui::safe-button color="danger" confirm="Cabut token ini?"
+            wire:click="revoke">Cabut</x-nawasara-ui::safe-button>
+--}}
 @props([
     'action' => null, // aksi dinamis (misal: Alpine.store('form').save())
     'color' => 'primary', // warna tombol

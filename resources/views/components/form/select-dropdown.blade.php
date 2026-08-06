@@ -1,3 +1,10 @@
+{{--
+    Form select dropdown — select dengan pencarian, untuk pilihan yang banyak.
+
+    Pemakaian:
+        <x-nawasara-ui::form.select-dropdown label="Pegawai" wire:model="userId"
+            :options="$userOptions" searchable />
+--}}
 @props(['label' => 'label'])
 @if ($attributes->has('label'))
     <x-nawasara-ui::form.label :value="$attributes['label']" />
