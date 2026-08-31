@@ -24,7 +24,7 @@
                 $el.addEventListener('scroll', () => sessionStorage.setItem('sidebar-scroll', $el.scrollTop));
             "
             class="h-full overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
-            <nav class="hs-accordion-group relative space-y-8 pt-5 pb-10 sm:pt-7 px-4 sm:px-8 lg:my-0"
+            <nav class="hs-accordion-group relative space-y-5 pt-5 pb-10 sm:pt-7 px-4 sm:px-8 lg:my-0"
                 data-hs-accordion-always-open>
                 @php $currentUrl = url()->current(); @endphp
 
@@ -74,7 +74,7 @@
                      Rail vertikal digambar sebagai border pada <ul>, dan
                      penanda aktif menimpanya dengan border-l pada <a> — bukan
                      elemen terpisah, supaya keduanya tidak pernah bergeser. --}}
-                <ul class="space-y-6" x-data="{ show: false }" x-init="setTimeout(() => show = true, 10)"
+                <ul class="space-y-5" x-data="{ show: false }" x-init="setTimeout(() => show = true, 10)"
                     x-show="show"
                     x-transition:enter="transition ease-out duration-200"
                     x-transition:enter-start="opacity-0 translate-x-1"
@@ -91,7 +91,7 @@
                                 <li>
                                     {{-- Judul workspace — satu-satunya tempat
                                          ikon dipakai di daftar ini. --}}
-                                    <div class="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-neutral-200">
+                                    <div class="mb-1.5 flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-neutral-200">
                                         @if (! empty($menu['icon']))
                                             <x-dynamic-component :component="$menu['icon']" class="size-4 text-emerald-700 dark:text-emerald-500" />
                                         @endif
@@ -113,16 +113,28 @@
                                                  'section' tidak berubah sama sekali. --}}
                                             @if (! empty($submenu['section']))
                                                 @if (empty($submenu['permission']) || optional(auth()->user())->can($submenu['permission']))
-                                                    {{-- Judul seksi MEMUTUS rail, tidak berdiri
-                                                         di sebelahnya: di sidebar Tailwind garis
-                                                         vertikal berhenti di tiap judul lalu mulai
-                                                         lagi di bawahnya, dan itu yang membuat
-                                                         kelompok terbaca sebagai kelompok.
+                                                    {{-- Judul seksi SEJAJAR dengan rail, bukan
+                                                         dengan teks itemnya.
 
-                                                         Caranya: geser satu piksel ke kiri untuk
-                                                         menimpa border <ul>, lalu tutup dengan
-                                                         latar yang sama dengan sidebar. --}}
-                                                    <li class="-ml-px mt-7 first:mt-0 border-l border-transparent bg-white pb-2 pl-4 text-[11px] font-semibold uppercase tracking-widest text-gray-500 dark:bg-neutral-800 dark:text-neutral-400">
+                                                         Di sidebar Tailwind, judul rata kiri
+                                                         menempel garis vertikal sementara item
+                                                         menjorok ke dalam. Itu yang membuat judul
+                                                         terbaca sebagai penanda kelompok — kalau
+                                                         ikut menjorok, ia hanya tampak seperti
+                                                         item yang kebetulan bergaya lain.
+
+                                                         <ul> tidak punya padding — border-nya
+                                                         tepat di tepi kiri, dan item menjorok
+                                                         lewat pl-4 pada <a>. Jadi judul cukup
+                                                         diberi pl-3 (lebih rapat dari item)
+                                                         supaya sejajar rail tanpa menempel.
+
+                                                         Latar TIDAK dipakai untuk memutus rail:
+                                                         penutup selebar baris meninggalkan celah
+                                                         yang terbaca seperti penanda aktif —
+                                                         itulah yang membuat dua item tampak
+                                                         aktif bersamaan. --}}
+                                                    <li class="mt-6 first:mt-0 pb-1.5 pl-3 text-[11px] font-semibold uppercase tracking-widest text-gray-500 dark:text-neutral-400">
                                                         {{ $submenu['section'] }}
                                                     </li>
                                                 @endif
