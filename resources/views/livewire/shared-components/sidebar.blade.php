@@ -28,21 +28,27 @@
                 data-hs-accordion-always-open>
                 @php $currentUrl = url()->current(); @endphp
 
-                {{-- Menu utama — berikon dan berjarak lebih lega dari daftar
-                     seksi di bawahnya, seperti blok atas sidebar Tailwind. --}}
-                <ul class="space-y-1">
-                    <li>
+                {{-- Home adalah tombol KEMBALI, bukan menu sederajat dengan
+                     workspace di bawahnya.
+
+                     Sebelumnya keduanya sama-sama tebal berikon hijau, jadi
+                     terbaca sebagai dua menu setara — padahal yang satu jalan
+                     keluar dan yang satu tempat kamu berada. Panah kiri,
+                     teks lebih kecil dan redup, lalu garis pemisah: ketiganya
+                     menyatakan "ini bukan bagian dari daftar di bawah".
+
+                     Saat berada DI Home, tombolnya tidak dirender sama
+                     sekali — tombol kembali ke tempat yang sedang dibuka
+                     hanya membingungkan. --}}
+                @if ($currentUrl !== url('/'))
+                    <div class="border-b border-gray-200 pb-4 dark:border-neutral-700">
                         <a href="{{ url('/') }}" wire:navigate
-                            @class([
-                                'flex items-center gap-2 py-1 text-sm font-semibold transition focus:outline-hidden',
-                                'text-emerald-700 dark:text-emerald-400' => $currentUrl === url('/'),
-                                'text-gray-800 hover:text-emerald-700 dark:text-neutral-200 dark:hover:text-emerald-500' => $currentUrl !== url('/'),
-                            ])>
-                            <x-lucide-home class="shrink-0 size-4 text-emerald-700 dark:text-emerald-500" />
-                            Home
+                            class="group flex items-center gap-2 text-xs font-medium text-gray-500 transition hover:text-gray-900 focus:outline-hidden dark:text-neutral-400 dark:hover:text-neutral-100">
+                            <x-lucide-arrow-left class="size-3.5 shrink-0 transition group-hover:-translate-x-0.5" />
+                            Kembali ke Beranda
                         </a>
-                    </li>
-                </ul>
+                    </div>
+                @endif
                 @php
                     $workspaces = app('nawasara.workspaces');
                     $currentWorkspaceMenu = $workspaces->currentMenu();
@@ -89,16 +95,31 @@
                         @foreach ($menusToRender as $menu)
                             @if (!empty($menu['submenu']))
                                 <li>
-                                    {{-- Judul workspace — satu-satunya tempat
-                                         ikon dipakai di daftar ini. --}}
-                                    <div class="mb-1.5 flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-neutral-200">
-                                        @if (! empty($menu['icon']))
-                                            <x-dynamic-component :component="$menu['icon']" class="size-4 text-emerald-700 dark:text-emerald-500" />
-                                        @endif
-                                        {{ $menu['label'] }}
-                                    </div>
+                                    {{-- Judul workspace hanya di BERANDA, tempat
+                                         beberapa workspace berjejer dan namanya
+                                         yang membedakan satu dari yang lain.
 
-                                    <ul class="space-y-0.5 border-l border-gray-200 dark:border-neutral-700">
+                                         Di dalam workspace ia dihilangkan: hanya
+                                         ada satu, dan namanya sudah disebut
+                                         breadcrumb serta judul halaman. Di sidebar
+                                         ia mengulang tanpa menambah — dan justru
+                                         mendorong daftar seksi turun sehingga
+                                         jaraknya terlihat jomplang. --}}
+                                    @if (! $currentWorkspaceMenu)
+                                        <div class="mb-2 flex items-center gap-2.5 text-sm font-semibold text-gray-800 dark:text-neutral-200">
+                                            @if (! empty($menu['icon']))
+                                                <x-dynamic-component :component="$menu['icon']" class="size-4 text-emerald-700 dark:text-emerald-500" />
+                                            @endif
+                                            {{ $menu['label'] }}
+                                        </div>
+                                    @endif
+
+                                    {{-- Rail TIDAK di <ul> melainkan di tiap <a>. Kalau digambar di
+                                         <ul>, garisnya menerus melewati judul seksi juga —
+                                         dan menutupinya dengan latar meninggalkan celah yang
+                                         terbaca seperti penanda aktif. Dengan border per
+                                         item, judul memang tidak punya garis. --}}
+                                    <ul class="space-y-0.5">
                                         @foreach ($menu['submenu'] as $submenu)
                                             {{-- Penanda seksi: entri TANPA url, dipakai untuk
                                                  mengelompokkan submenu di dalam satu workspace.
@@ -134,7 +155,7 @@
                                                          yang terbaca seperti penanda aktif —
                                                          itulah yang membuat dua item tampak
                                                          aktif bersamaan. --}}
-                                                    <li class="mt-6 first:mt-0 pb-1.5 pl-3 text-[11px] font-semibold uppercase tracking-widest text-gray-500 dark:text-neutral-400">
+                                                    <li class="mt-6 first:mt-0 pb-1.5 text-[11px] font-semibold uppercase tracking-widest text-gray-500 dark:text-neutral-400">
                                                         {{ $submenu['section'] }}
                                                     </li>
                                                 @endif
@@ -147,8 +168,8 @@
                                                     <a href="{{ url($submenu['url']) }}"
                                                         @isset($submenu['navigate']) @if ($submenu['navigate']) wire:navigate.hover @endif @endisset
                                                         @class([
-                                                            'block -ml-px border-l pl-4 pr-3 py-2 text-sm transition',
-                                                            'border-transparent text-gray-600 hover:border-gray-400 hover:text-gray-900 dark:text-neutral-400 dark:hover:border-neutral-500 dark:hover:text-neutral-100' => !$isActive,
+                                                            'block border-l pl-4 pr-3 py-2 text-sm transition',
+                                                            'border-gray-200 text-gray-600 hover:border-gray-400 hover:text-gray-900 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-neutral-500 dark:hover:text-neutral-100' => !$isActive,
                                                             'border-emerald-600 font-medium text-emerald-700 dark:border-emerald-500 dark:text-emerald-400' => $isActive,
                                                         ])>
                                                         {{ $submenu['label'] }}
