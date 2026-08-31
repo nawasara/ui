@@ -149,6 +149,10 @@ class WorkspaceManager
             return null;
         }
 
+        // Entri tanpa `url` bukan tautan — ia penanda seksi (['section' =>
+        // 'Hibah']) yang dirender sidebar sebagai judul di dalam workspace.
+        // Tidak ikut dihitung: badge jumlah menu harus menyebut halaman yang
+        // dapat dibuka, bukan judulnya.
         $submenuCount = count(array_filter(
             $menu['submenu'] ?? [],
             fn ($sub) => ! empty($sub['url'])

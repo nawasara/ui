@@ -75,6 +75,30 @@
                                 </div>
                                 <ul class="space-y-1 border-l border-gray-200 dark:border-gray-700">
                                     @foreach ($menu['submenu'] as $submenu)
+                                        {{-- Penanda seksi: entri TANPA url, dipakai untuk
+                                             mengelompokkan submenu di dalam satu workspace.
+                                             Bentuknya ['section' => 'Hibah', 'icon' => '...'].
+
+                                             Dipakai nawasara/hibah, yang punya tiga kelompok
+                                             (Hibah / Bansos / Bantuan Keuangan) di bawah satu
+                                             workspace — ketiganya harus tetap terlihat saat
+                                             salah satunya dibuka, dan tiga workspace terpisah
+                                             justru menyembunyikan dua sisanya.
+
+                                             Aman untuk paket lain: yang tidak memakai
+                                             'section' tidak berubah sama sekali. --}}
+                                        @if (! empty($submenu['section']))
+                                            @if (empty($submenu['permission']) || optional(auth()->user())->can($submenu['permission']))
+                                                <li class="mt-3 first:mt-0 flex items-center gap-2 pl-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-neutral-500">
+                                                    @if (! empty($submenu['icon']))
+                                                        <i class="{{ $submenu['icon'] }} text-sm"></i>
+                                                    @endif
+                                                    <span>{{ $submenu['section'] }}</span>
+                                                </li>
+                                            @endif
+                                            @continue
+                                        @endif
+
                                         @php $isActive = $currentUrl === url($submenu['url']); @endphp
                                         @if (empty($submenu['permission']) || optional(auth()->user())->can($submenu['permission']))
                                             <li>
