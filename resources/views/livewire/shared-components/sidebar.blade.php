@@ -26,17 +26,24 @@
             class="h-full overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
             <nav class="hs-accordion-group relative space-y-8 pt-5 pb-10 sm:pt-7 px-4 sm:px-8 lg:my-0"
                 data-hs-accordion-always-open>
+                @php $currentUrl = url()->current(); @endphp
+
+                {{-- Menu utama — berikon dan berjarak lebih lega dari daftar
+                     seksi di bawahnya, seperti blok atas sidebar Tailwind. --}}
                 <ul class="space-y-1">
                     <li>
                         <a href="{{ url('/') }}" wire:navigate
-                            class="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-emerald-700 focus:outline-hidden focus:text-emerald-700 dark:text-neutral-300 dark:hover:text-emerald-500">
+                            @class([
+                                'flex items-center gap-2 py-1 text-sm font-semibold transition focus:outline-hidden',
+                                'text-emerald-700 dark:text-emerald-400' => $currentUrl === url('/'),
+                                'text-gray-800 hover:text-emerald-700 dark:text-neutral-200 dark:hover:text-emerald-500' => $currentUrl !== url('/'),
+                            ])>
                             <x-lucide-home class="shrink-0 size-4 text-emerald-700 dark:text-emerald-500" />
                             Home
                         </a>
                     </li>
                 </ul>
                 @php
-                    $currentUrl = url()->current();
                     $workspaces = app('nawasara.workspaces');
                     $currentWorkspaceMenu = $workspaces->currentMenu();
                     // In a workspace → show only that workspace's submenu (one group,
@@ -52,91 +59,106 @@
                     }
                 @endphp
 
-                <ul class="space-y-3" x-data="{ show: false }" x-init="setTimeout(() => show = true, 10)"
+                {{-- ── Navigasi ────────────────────────────────────────────
+                     Gaya mengikuti sidebar dokumentasi Tailwind:
+
+                     • Judul seksi kecil-kapital-redup, item polos di bawahnya
+                     • Item submenu TANPA ikon — hanya teks, jadi mata memindai
+                       satu kolom kata alih-alih berpindah antara ikon dan label
+                     • Penanda aktif berupa garis kiri + teks tegas, tanpa
+                       latar; latar berwarna pada item ramping terbaca berat
+                       dan menarik perhatian lebih dari yang pantas
+                     • Ikon HANYA di menu utama atas (Home) dan judul workspace,
+                       tempat ikon benar-benar membantu membedakan
+
+                     Rail vertikal digambar sebagai border pada <ul>, dan
+                     penanda aktif menimpanya dengan border-l pada <a> — bukan
+                     elemen terpisah, supaya keduanya tidak pernah bergeser. --}}
+                <ul class="space-y-6" x-data="{ show: false }" x-init="setTimeout(() => show = true, 10)"
                     x-show="show"
                     x-transition:enter="transition ease-out duration-200"
                     x-transition:enter-start="opacity-0 translate-x-1"
                     x-transition:enter-end="opacity-100 translate-x-0">
                     @foreach ($renderGroups as $groupLabel => $menusToRender)
                         @if ($groupLabel !== '')
-                            <li class="px-1 pt-2 first:pt-0 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-neutral-500">
+                            <li class="px-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-neutral-500">
                                 {{ $groupLabel }}
                             </li>
                         @endif
+
                         @foreach ($menusToRender as $menu)
-                        @if (!empty($menu['submenu']))
-                            <!-- Section heading -->
-                            <li>
-                                <div class="mb-1 flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-neutral-300">
-                                    @if (! empty($menu['icon']))
-                                        <x-dynamic-component :component="$menu['icon']" class="size-4 text-emerald-700 dark:text-emerald-500" />
-                                    @endif
-                                    {{ $menu['label'] }}
-                                </div>
-                                <ul class="space-y-1 border-l border-gray-200 dark:border-gray-700">
-                                    @foreach ($menu['submenu'] as $submenu)
-                                        {{-- Penanda seksi: entri TANPA url, dipakai untuk
-                                             mengelompokkan submenu di dalam satu workspace.
-                                             Bentuknya ['section' => 'Hibah', 'icon' => '...'].
+                            @if (!empty($menu['submenu']))
+                                <li>
+                                    {{-- Judul workspace — satu-satunya tempat
+                                         ikon dipakai di daftar ini. --}}
+                                    <div class="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-neutral-200">
+                                        @if (! empty($menu['icon']))
+                                            <x-dynamic-component :component="$menu['icon']" class="size-4 text-emerald-700 dark:text-emerald-500" />
+                                        @endif
+                                        {{ $menu['label'] }}
+                                    </div>
 
-                                             Dipakai nawasara/hibah, yang punya tiga kelompok
-                                             (Hibah / Bansos / Bantuan Keuangan) di bawah satu
-                                             workspace — ketiganya harus tetap terlihat saat
-                                             salah satunya dibuka, dan tiga workspace terpisah
-                                             justru menyembunyikan dua sisanya.
+                                    <ul class="space-y-px border-l border-gray-200 dark:border-neutral-700">
+                                        @foreach ($menu['submenu'] as $submenu)
+                                            {{-- Penanda seksi: entri TANPA url, dipakai untuk
+                                                 mengelompokkan submenu di dalam satu workspace.
+                                                 Bentuknya ['section' => 'Hibah'].
 
-                                             Aman untuk paket lain: yang tidak memakai
-                                             'section' tidak berubah sama sekali. --}}
-                                        @if (! empty($submenu['section']))
+                                                 Dipakai nawasara/hibah, yang punya tiga kelompok
+                                                 (Hibah / Bansos / Bantuan Keuangan) di bawah satu
+                                                 workspace — ketiganya harus tetap terlihat saat
+                                                 salah satunya dibuka.
+
+                                                 Aman untuk paket lain: yang tidak memakai
+                                                 'section' tidak berubah sama sekali. --}}
+                                            @if (! empty($submenu['section']))
+                                                @if (empty($submenu['permission']) || optional(auth()->user())->can($submenu['permission']))
+                                                    <li class="mt-5 first:mt-0 pl-4 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-neutral-500">
+                                                        {{ $submenu['section'] }}
+                                                    </li>
+                                                @endif
+                                                @continue
+                                            @endif
+
+                                            @php $isActive = $currentUrl === url($submenu['url']); @endphp
                                             @if (empty($submenu['permission']) || optional(auth()->user())->can($submenu['permission']))
-                                                <li class="mt-3 first:mt-0 flex items-center gap-2 pl-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-neutral-500">
-                                                    @if (! empty($submenu['icon']))
-                                                        <i class="{{ $submenu['icon'] }} text-sm"></i>
-                                                    @endif
-                                                    <span>{{ $submenu['section'] }}</span>
+                                                <li>
+                                                    <a href="{{ url($submenu['url']) }}"
+                                                        @isset($submenu['navigate']) @if ($submenu['navigate']) wire:navigate.hover @endif @endisset
+                                                        @class([
+                                                            'block -ml-px border-l pl-4 pr-3 py-1.5 text-sm transition',
+                                                            'border-transparent text-gray-600 hover:border-gray-400 hover:text-gray-900 dark:text-neutral-400 dark:hover:border-neutral-500 dark:hover:text-neutral-100' => !$isActive,
+                                                            'border-emerald-600 font-medium text-emerald-700 dark:border-emerald-500 dark:text-emerald-400' => $isActive,
+                                                        ])>
+                                                        {{ $submenu['label'] }}
+                                                    </a>
                                                 </li>
                                             @endif
-                                            @continue
+                                        @endforeach
+                                    </ul>
+                                </li>
+                            @else
+                                {{-- Workspace tanpa submenu — satu tautan, dan
+                                     di sini ikon dipertahankan karena ia berdiri
+                                     sendiri tanpa judul di atasnya. --}}
+                                @php $isActive = $currentUrl === url($menu['url']); @endphp
+                                <li>
+                                    <a href="{{ url($menu['url']) }}" @class([
+                                        'flex items-center gap-2 py-1.5 text-sm transition',
+                                        'text-gray-700 hover:text-gray-900 dark:text-neutral-300 dark:hover:text-neutral-100' => !$isActive,
+                                        'font-semibold text-emerald-700 dark:text-emerald-400' => $isActive,
+                                    ])>
+                                        @if (!empty($menu['icon']))
+                                            <x-dynamic-component :component="$menu['icon']" class="size-4 shrink-0 text-emerald-700 dark:text-emerald-500" />
                                         @endif
-
-                                        @php $isActive = $currentUrl === url($submenu['url']); @endphp
-                                        @if (empty($submenu['permission']) || optional(auth()->user())->can($submenu['permission']))
-                                            <li>
-                                                <a href="{{ url($submenu['url']) }}"
-                                                    @isset($submenu['navigate']) @if ($submenu['navigate']) wire:navigate.hover @endif  @endisset)
-                                                    @class([
-                                                        'flex items-center gap-2 px-4 py-1.5 text-sm rounded-none border-l-3 transition',
-                                                        'border-transparent text-gray-700 dark:text-gray-300 hover:border-emerald-700 hover:text-emerald-800 dark:hover:text-gray-100' => !$isActive,
-                                                        'border-emerald-700 text-emerald-800 dark:text-emerald-400 font-semibold' => $isActive,
-                                                    ])>
-                                                    @if (!empty($submenu['icon']))
-                                                        <i class="{{ $submenu['icon'] }} text-base"></i>
-                                                    @endif
-                                                    <span>{{ $submenu['label'] }}</span>
-                                                </a>
-                                            </li>
-                                        @endif
-                                    @endforeach
-                                </ul>
-                            </li>
-                        @else
-                            @php $isActive = $currentUrl === url($menu['url']); @endphp
-                            <li>
-                                <a href="{{ url($menu['url']) }}" @class([
-                                    'flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-none border-l-3 transition',
-                                    'border-transparent text-gray-700 dark:text-gray-300 hover:border-emerald-700 hover:text-emerald-800 dark:hover:text-gray-100' => !$isActive,
-                                    'border-emerald-700 text-emerald-800 dark:text-emerald-400 font-semibold' => $isActive,
-                                ])>
-                                    @if (!empty($menu['icon']))
-                                        <i class="{{ $menu['icon'] }} text-base"></i>
-                                    @endif
-                                    <span>{{ $menu['label'] }}</span>
-                                </a>
-                            </li>
-                        @endif
+                                        <span>{{ $menu['label'] }}</span>
+                                    </a>
+                                </li>
+                            @endif
                         @endforeach
                     @endforeach
                 </ul>
+
             </nav>
         </div>
         <!-- End Content -->
