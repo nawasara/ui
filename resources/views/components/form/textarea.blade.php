@@ -14,8 +14,14 @@
 ])
 
 <div class="flex flex-col gap-1">
-    @if ($attributes->has('label'))
-        <x-nawasara-ui::form.label :value="$attributes['label']" />
+    {{-- ⚠️ Dibaca dari $label, BUKAN $attributes.
+         `label` dideklarasikan di @props, dan prop yang dideklarasikan
+         DIKELUARKAN dari $attributes — jadi `$attributes->has('label')`
+         selalu false dan labelnya tidak pernah tergambar. Lima belas
+         pemakaian di sepuluh paket kehilangan labelnya karena ini, dan
+         tidak ada galat apa pun yang menandainya. --}}
+    @if ($label)
+        <x-nawasara-ui::form.label :value="$label" />
     @endif
 
     <textarea @if($name) id="{{ $name }}" name="{{ $name }}" @endif rows="{{ $rows }}" placeholder="{{ $placeholder }}"

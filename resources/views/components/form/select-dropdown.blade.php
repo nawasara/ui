@@ -6,8 +6,10 @@
             :options="$userOptions" searchable />
 --}}
 @props(['label' => 'label'])
-@if ($attributes->has('label'))
-    <x-nawasara-ui::form.label :value="$attributes['label']" />
+{{-- Dibaca dari $label, bukan $attributes — lihat catatan di
+     form/textarea.blade.php. --}}
+@if ($label)
+    <x-nawasara-ui::form.label :value="$label" />
 @endif
 
 <div class="hs-dropdown w-full relative inline-flex [--strategy:absolute] [--trigger:click]" {{ $attributes->merge() }}>

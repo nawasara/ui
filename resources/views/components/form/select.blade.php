@@ -14,8 +14,11 @@
 ])
 
 <div class="flex flex-col gap-1 w-full sm:w-auto sm:min-w-40">
-    @if ($attributes->has('label'))
-        <x-nawasara-ui::form.label :value="$attributes['label']" />
+    {{-- Dibaca dari $label, bukan $attributes — prop yang dideklarasikan
+         di @props dikeluarkan dari $attributes, jadi has('label') selalu
+         false dan labelnya tidak pernah tergambar. --}}
+    @if ($label)
+        <x-nawasara-ui::form.label :value="$label" />
     @endif
 
     <select @if($name) id="{{ $name }}" name="{{ $name }}" @endif
