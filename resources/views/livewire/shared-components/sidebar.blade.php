@@ -98,7 +98,7 @@
                                         {{ $menu['label'] }}
                                     </div>
 
-                                    <ul class="space-y-px border-l border-gray-200 dark:border-neutral-700">
+                                    <ul class="space-y-0.5 border-l border-gray-200 dark:border-neutral-700">
                                         @foreach ($menu['submenu'] as $submenu)
                                             {{-- Penanda seksi: entri TANPA url, dipakai untuk
                                                  mengelompokkan submenu di dalam satu workspace.
@@ -113,7 +113,16 @@
                                                  'section' tidak berubah sama sekali. --}}
                                             @if (! empty($submenu['section']))
                                                 @if (empty($submenu['permission']) || optional(auth()->user())->can($submenu['permission']))
-                                                    <li class="mt-5 first:mt-0 pl-4 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-neutral-500">
+                                                    {{-- Judul seksi MEMUTUS rail, tidak berdiri
+                                                         di sebelahnya: di sidebar Tailwind garis
+                                                         vertikal berhenti di tiap judul lalu mulai
+                                                         lagi di bawahnya, dan itu yang membuat
+                                                         kelompok terbaca sebagai kelompok.
+
+                                                         Caranya: geser satu piksel ke kiri untuk
+                                                         menimpa border <ul>, lalu tutup dengan
+                                                         latar yang sama dengan sidebar. --}}
+                                                    <li class="-ml-px mt-7 first:mt-0 border-l border-transparent bg-white pb-2 pl-4 text-[11px] font-semibold uppercase tracking-widest text-gray-500 dark:bg-neutral-800 dark:text-neutral-400">
                                                         {{ $submenu['section'] }}
                                                     </li>
                                                 @endif
@@ -126,7 +135,7 @@
                                                     <a href="{{ url($submenu['url']) }}"
                                                         @isset($submenu['navigate']) @if ($submenu['navigate']) wire:navigate.hover @endif @endisset
                                                         @class([
-                                                            'block -ml-px border-l pl-4 pr-3 py-1.5 text-sm transition',
+                                                            'block -ml-px border-l pl-4 pr-3 py-2 text-sm transition',
                                                             'border-transparent text-gray-600 hover:border-gray-400 hover:text-gray-900 dark:text-neutral-400 dark:hover:border-neutral-500 dark:hover:text-neutral-100' => !$isActive,
                                                             'border-emerald-600 font-medium text-emerald-700 dark:border-emerald-500 dark:text-emerald-400' => $isActive,
                                                         ])>
