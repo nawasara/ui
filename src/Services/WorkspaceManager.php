@@ -79,12 +79,68 @@ class WorkspaceManager
 
         return collect($this->all())
             ->filter(function ($ws) use ($user) {
-                if (empty($ws['permission'])) {
-                    return true;
+                // Permission di level workspace, bila ada, adalah gerbang pertama.
+                if (! empty($ws['permission'])) {
+                    return $user && $user->can($ws['permission']);
                 }
-                return $user && $user->can($ws['permission']);
+
+                // Tanpa permission workspace, yang menentukan adalah SUBMENUNYA:
+                // tampilkan hanya bila ada setidaknya satu halaman yang benar-
+                // benar boleh dibuka.
+                //
+                // Sebelumnya cabang ini mengembalikan true begitu saja, sehingga
+                // workspace ber-permission null tampil kepada SEMUA orang.
+                // Kartunya bahkan menyebut "5 menu tersedia" kepada peran yang
+                // tidak berhak atas satu pun — dan setiap menu yang diklik
+                // menjawab 403. Terlihat seperti hak akses yang rusak, padahal
+                // penyaringnya yang tidak pernah melihat submenu.
+                //
+                // `permission => null` di level workspace tetap sah dan berguna:
+                // ia dipakai justru saat penggerbangan sesungguhnya ada
+                // per-submenu, supaya staf yang hanya berhak atas satu bagian
+                // tidak kehilangan seluruh workspace.
+                return $this->hasAccessibleSubmenu($ws['menu'] ?? [], $user);
             })
             ->all();
+    }
+
+    /**
+     * Adakah submenu yang boleh dibuka pengguna ini?
+     *
+     * Penanda seksi (entri tanpa `url`) dilewati — ia judul, bukan halaman.
+     * Submenu tanpa permission dianggap terbuka, sama seperti di
+     * firstAccessibleUrl().
+     */
+    protected function hasAccessibleSubmenu(array $menu, $user): bool
+    {
+        $submenu = $menu['submenu'] ?? [];
+
+        // Workspace tanpa submenu sama sekali: biarkan tampil. Ia tidak
+        // menjanjikan halaman apa pun, jadi tidak ada yang bisa mengecewakan —
+        // dan menyembunyikannya akan mematikan workspace yang menu-nya dipasok
+        // paket lain yang belum termuat.
+        if ($submenu === []) {
+            return true;
+        }
+
+        $adaHalaman = false;
+
+        foreach ($submenu as $sub) {
+            if (empty($sub['url'])) {
+                continue;
+            }
+
+            $adaHalaman = true;
+            $permission = $sub['permission'] ?? null;
+
+            if (! $permission || ($user && $user->can($permission))) {
+                return true;
+            }
+        }
+
+        // Seluruhnya penanda seksi, tanpa satu pun halaman: perlakukan seperti
+        // workspace tanpa submenu.
+        return ! $adaHalaman;
     }
 
     /**
@@ -153,9 +209,24 @@ class WorkspaceManager
         // 'Hibah']) yang dirender sidebar sebagai judul di dalam workspace.
         // Tidak ikut dihitung: badge jumlah menu harus menyebut halaman yang
         // dapat dibuka, bukan judulnya.
+        // Hanya yang BOLEH dibuka pengguna ini.
+        //
+        // Menghitung seluruh submenu membuat kartu workspace menjanjikan
+        // "11 menu tersedia" kepada peran yang hanya berhak atas satu — angka
+        // yang tidak pernah cocok dengan isi sidebarnya.
+        $user = auth()->user();
+
         $submenuCount = count(array_filter(
             $menu['submenu'] ?? [],
-            fn ($sub) => ! empty($sub['url'])
+            function ($sub) use ($user) {
+                if (empty($sub['url'])) {
+                    return false;
+                }
+
+                $permission = $sub['permission'] ?? null;
+
+                return ! $permission || ($user && $user->can($permission));
+            }
         ));
 
         return [
