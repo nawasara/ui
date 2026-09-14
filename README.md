@@ -26,16 +26,16 @@ UI components, layouts, theme, and shared Livewire concerns used by every packag
 
 ### Layouts
 
-- `layouts.app` — main authenticated layout with sidebar + topbar + toaster
-- `layouts.guest` — login / public layout
+- `layouts.app`: main authenticated layout with sidebar, topbar, and toaster
+- `layouts.guest`: login / public layout
 
 ### Livewire concerns
 
-- `Nawasara\Ui\Livewire\Concerns\HasBrowserToast` — gives any Livewire component `toastSuccess / toastError / toastWarning / toastInfo` methods that fire dual-channel (Livewire event + JS payload) so toasts always show, even in AJAX-only requests where session flash never reaches the page
+- `Nawasara\Ui\Livewire\Concerns\HasBrowserToast`: gives any Livewire component `toastSuccess / toastError / toastWarning / toastInfo` methods that fire on two channels (Livewire event plus JS payload) so toasts always show, even in AJAX-only requests where session flash never reaches the page
 
 ### Services
 
-- `WorkspaceManager` — resolves the active workspace from the request URL, merges menu entries from every package that declares the same `workspace` key, and exposes `accessible()` for permission-filtered nav
+- `WorkspaceManager`: resolves the active workspace from the request URL, merges menu entries from every package that declares the same `workspace` key, and exposes `accessible()` for permission-filtered nav
 
 ## Installation
 
