@@ -12,6 +12,19 @@
             ['type' => 'click', 'label' => 'Hapus', 'wire:click' => 'destroy(1)', 'icon' => 'lucide-trash-2',
              'confirm' => 'Hapus data ini?'],
         ]" />
+
+    ⚠️ JANGAN menaruh kutip ganda lurus di dalam teks item, mis. pada 'confirm'.
+    Array ini ditulis di dalam atribut yang juga dibatasi kutip ganda, jadi satu
+    kutip ganda menutup atribut itu lebih awal dan SISA ARRAY TUMPAH KE HALAMAN
+    sebagai teks PHP mentah, lengkap dengan nama permission. Tidak ada galat,
+    hanya tabel yang terlihat rusak.
+
+    Pakai kutip tipografis: 'Hapus ‘'.$row->name.'’ secara permanen?'
+
+    Kalau memang butuh kutip ganda, bangun array di blok @php lebih dulu lalu
+    lewatkan variabelnya (:items="$items"), seperti nawasara-proxmox.
+
+    Kena di nawasara-emergency sampai 17 September 2026.
 --}}
 @props(['id', 'items' => [], 'modalName' => null])
 
