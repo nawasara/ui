@@ -19,10 +19,10 @@
     sebagai teks PHP mentah, lengkap dengan nama permission. Tidak ada galat,
     hanya tabel yang terlihat rusak.
 
-    Pakai kutip tipografis: 'Hapus ‘'.$row->name.'’ secara permanen?'
+    Pakai kutip tipografis, mis. 'Hapus ‘Nama‘ secara permanen?'
 
-    Kalau memang butuh kutip ganda, bangun array di blok @php lebih dulu lalu
-    lewatkan variabelnya (:items="$items"), seperti nawasara-proxmox.
+    Kalau memang butuh kutip ganda, bangun array di blok PHP lebih dulu lalu
+    lewatkan variabelnya lewat :items, seperti nawasara-proxmox.
 
     Kena di nawasara-emergency sampai 17 September 2026.
 --}}
