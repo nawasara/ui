@@ -45,7 +45,7 @@
                         : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-neutral-400 dark:hover:text-neutral-300');
             @endphp
             <button type="button"
-                @if ($wireMethod) wire:click="{{ $wireMethod }}('{{ $item['key'] }}')" @endif
+                @if ($wireMethod) wire:click="{{ $wireMethod }}({{ \Illuminate\Support\Js::from((string) $item['key']) }})" @endif
                 class="{{ $tabClass }}"
                 @if ($isActive) aria-current="page" @endif>
                 @if (! empty($item['icon']))

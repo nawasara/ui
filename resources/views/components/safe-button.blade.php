@@ -16,6 +16,10 @@
     'timeout' => 2000, // durasi disable (ms)
 ])
 
+{{-- $action adalah KODE dari pengembang, bukan data. Tetap dikirim lewat
+     Js::from supaya kutip di dalamnya tidak memecah string dan diam-diam
+     menjalankan sesuatu yang lain (audit keamanan 15 Oktober 2026, T9).
+     Jangan pernah mengisinya dengan nilai dari pengguna. --}}
 <x-nawasara-ui::button :color="$color" :size="$size" :full="$full" x-data="{ disabled: false, loading: false }"
     x-bind:disabled="disabled"
     @click="
@@ -24,8 +28,8 @@
         loading = true;
 
         try {
-            if ('{{ $action }}') {
-                let result = eval('{{ $action }}');
+            if ({{ \Illuminate\Support\Js::from((string) $action) }}) {
+                let result = eval({{ \Illuminate\Support\Js::from((string) $action) }});
                 if (result instanceof Promise) {
                     result.finally(() => {
                         loading = false;

@@ -66,7 +66,7 @@
                 <div class="p-1">
                     @foreach ($formats as $key => $meta)
                         <button type="button"
-                            wire:click="{{ $action }}('{{ $key }}')"
+                            wire:click="{{ $action }}({{ \Illuminate\Support\Js::from((string) $key) }})"
                             class="w-full text-left flex items-start gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors group">
                             <span class="shrink-0 mt-0.5 inline-flex items-center justify-center size-8 rounded-lg bg-gray-100 group-hover:bg-emerald-50 dark:bg-neutral-700 dark:group-hover:bg-emerald-900/30 transition-colors">
                                 @switch($key)

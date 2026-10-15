@@ -29,49 +29,124 @@
 @props(['id', 'items' => [], 'modalName' => null])
 
 @php
-    // ── Helper: parse "method('a', 'b', 1, true, null)" ke JS args list
+    // ── Audit keamanan 15 Oktober 2026 (T9) ──
+    // Semua JavaScript di komponen ini dibangun dari DATA (nama user dari
+    // Keycloak, topik Zoom, nama OPD, nama instance Vault). Dulu nilai itu
+    // disambung ke string JS dengan kutip tunggal, mis. name: '{$item['name']}'.
+    // Browser men-decode entitas HTML di atribut onclick SEBELUM menjalankannya,
+    // jadi e() dari Blade tidak menolong: satu kutip tunggal di nama sudah
+    // keluar dari string dan menjalankan skrip di sesi admin.
+    //
+    // Aturannya sekarang: setiap nilai yang masuk ke JS lewat $_js(), yaitu
+    // json_encode dengan JSON_HEX_*. Hasilnya literal JS yang sah dan tidak
+    // memuat ' " < > & mentah, sehingga aman di dalam atribut maupun string.
+    $_js = static fn ($value): string => json_encode(
+        $value,
+        JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_PARTIAL_OUTPUT_ON_ERROR,
+    );
+
+    // Buka escape string JS/JSON (\', \", \\, \n, \uXXXX termasuk pasangan
+    // surrogate) supaya argumen yang ditulis pemanggil dengan Js::from()
+    // kembali menjadi nilai aslinya sebelum di-encode ulang.
+    $_jsUnescape = static function (string $s): string {
+        $s = preg_replace_callback(
+            '/\\\\u(d[89ab][0-9a-f]{2})\\\\u(d[c-f][0-9a-f]{2})/i',
+            static fn ($m) => mb_chr(0x10000 + ((hexdec($m[1]) - 0xD800) << 10) + (hexdec($m[2]) - 0xDC00), 'UTF-8'),
+            $s,
+        );
+
+        return preg_replace_callback(
+            '/\\\\(u[0-9a-fA-F]{4}|x[0-9a-fA-F]{2}|.)/s',
+            static function ($m) {
+                $c = $m[1];
+                if ($c[0] === 'u' && strlen($c) === 5) {
+                    return (string) mb_chr(hexdec(substr($c, 1)), 'UTF-8');
+                }
+                if ($c[0] === 'x' && strlen($c) === 3) {
+                    return chr(hexdec(substr($c, 1)));
+                }
+
+                return match ($c) {
+                    'n' => "\n",
+                    'r' => "\r",
+                    't' => "\t",
+                    default => $c,
+                };
+            },
+            $s,
+        );
+    };
+
+    // ── Helper: parse "method('a', 'b', 1, true, null)" ke daftar argumen JS
     // siap untuk Livewire.find(id).call(method, ...args).
     //
-    // Output: comma-separated JS args dengan method name sebagai elemen
-    // pertama, mis. "'method', 'a', 'b', 1, true, null". Caller pakai
-    // dengan: __nawasaraDdCall(this, <output>).
+    // Output: argumen JS dipisah koma dengan nama method sebagai elemen
+    // pertama, mis. "\"method\", \"a\", \"b\", 1, true, null". Pemanggil
+    // memakainya: __nawasaraDdCall(this, <output>).
     //
-    // Tipe yang di-recognize:
-    //   - 'foo' / "foo"   → string (preserve quotes, escape isi)
-    //   - 123 / 1.5       → number literal
-    //   - true / false    → boolean literal
-    //   - null            → null literal
-    //   - bareword        → fallback ke string literal (defensive)
-    $_parseWireCall = function (string $raw): string {
+    // Tipe yang dikenali:
+    //   - 'foo' / "foo"   → string (escape dibuka, lalu di-encode ulang $_js)
+    //   - 123 / 1.5       → angka
+    //   - true / false    → boolean
+    //   - null            → null
+    //   - bareword        → dijadikan string (defensif)
+    //
+    // Argumen dipecah dengan tokenizer yang memahami string berkutip, jadi
+    // koma di dalam string (mis. 'Dinas A, B') tidak lagi memecah argumen.
+    $_parseWireCall = function (string $raw) use ($_js, $_jsUnescape): string {
         $raw = trim($raw);
 
         if (! preg_match('/^([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*(.*?)\s*\)\s*;?\s*$/s', $raw, $m)) {
-            return "'".addslashes($raw)."'";
+            return $_js($raw);
         }
 
-        $method = $m[1];
+        $parts = [$_js($m[1])];
         $argsStr = $m[2];
-        $parts = ["'".addslashes($method)."'"];
 
         if ($argsStr !== '') {
-            foreach (preg_split('/\s*,\s*/', $argsStr) as $arg) {
-                $arg = trim($arg);
+            preg_match_all(
+                '/\G\s*(\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*"|[^,]*?)\s*(?:,|$)/s',
+                $argsStr,
+                $all,
+            );
 
-                if (preg_match("/^'(.*)'$/s", $arg, $sm) || preg_match('/^"(.*)"$/s', $arg, $sm)) {
-                    $parts[] = "'".addslashes($sm[1])."'";
+            foreach ($all[1] as $i => $arg) {
+                // preg_match_all dengan \G menghasilkan satu kecocokan kosong
+                // di ujung string; buang yang itu saja.
+                if ($arg === '' && $i === count($all[1]) - 1 && $i > 0) {
                     continue;
                 }
 
-                if (is_numeric($arg) || in_array($arg, ['null', 'true', 'false'], true)) {
+                $arg = trim($arg);
+
+                if (strlen($arg) >= 2 && ($arg[0] === "'" || $arg[0] === '"') && $arg[-1] === $arg[0]) {
+                    $parts[] = $_js($_jsUnescape(substr($arg, 1, -1)));
+                    continue;
+                }
+
+                if (is_numeric($arg)) {
+                    $parts[] = $_js($arg + 0);
+                    continue;
+                }
+
+                if (in_array($arg, ['null', 'true', 'false'], true)) {
                     $parts[] = $arg;
                     continue;
                 }
 
-                $parts[] = "'".addslashes($arg)."'";
+                $parts[] = $_js($arg);
             }
         }
 
         return implode(', ', $parts);
+    };
+
+    // href dari data: tolak skema yang menjalankan skrip.
+    $_safeHref = static function ($href): string {
+        $href = (string) $href;
+        $normalized = strtolower(preg_replace('/[\x00-\x20]+/', '', $href));
+
+        return preg_match('/^(javascript|data|vbscript):/', $normalized) ? '#' : $href;
     };
 @endphp
 
@@ -243,26 +318,28 @@
                             // dispatch yang juga survive teleport karena
                             // listener-nya di window scope, bukan element
                             // scope.
-                            $rawClick = $item['wire:click'] ?? "{$item['action']}('{$item['param']}')";
-                            $jsArgs = $_parseWireCall($rawClick);
+                            $jsArgs = isset($item['wire:click'])
+                                ? $_parseWireCall($item['wire:click'])
+                                // Bentuk lama action + param: param dikirim sebagai
+                                // string apa adanya, tanpa melewati parser.
+                                : $_js((string) ($item['action'] ?? '')).', '.$_js((string) ($item['param'] ?? ''));
                             $jsCall = "__nawasaraDdCall(this, {$jsArgs})";
 
                             $modalDispatch = ! empty($item['modal'])
-                                ? "; window.dispatchEvent(new CustomEvent('open-modal', {detail: {id: '{$item['modal']}', loading: true}}))"
+                                ? "; window.dispatchEvent(new CustomEvent('open-modal', {detail: ".$_js(['id' => (string) $item['modal'], 'loading' => true])."}))"
                                 : '';
 
                             // wire:confirm support — manual karena kita
                             // bypass Livewire wire:click interceptor.
                             if (! empty($item['confirm'])) {
-                                $msg = addslashes($item['confirm']);
-                                $jsCall = "if (! confirm('{$msg}')) return; ".$jsCall;
+                                $jsCall = 'if (! confirm('.$_js((string) $item['confirm']).')) return; '.$jsCall;
                             }
 
                             $attrs['onclick'] = $jsCall.$modalDispatch;
                             break;
                         case 'link':
                         case 'href':
-                            $attrs['href'] = $item['href'] ?? $item['url'] ?? '#';
+                            $attrs['href'] = $_safeHref($item['href'] ?? $item['url'] ?? '#');
                             if (! empty($item['navigate'])) {
                                 $attrs['wire:navigate'] = true;
                             }
@@ -274,15 +351,15 @@
                             }
                             break;
                         case 'href-navigate':
-                            $attrs['href'] = $item['url'];
+                            $attrs['href'] = $_safeHref($item['url'] ?? '#');
                             $attrs['wire:navigate'] = true;
                             break;
                         case 'wireModal':
-                            $jsonPayload = json_encode($item['payload'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-                            $attrs['onclick'] = "openLivewireModal({$jsonPayload})";
+                            $attrs['onclick'] = 'openLivewireModal('.$_js($item['payload'] ?? null).')';
                             break;
                         case 'delete':
-                            $attrs['onclick'] = "Livewire.dispatch('modal-delete', { id: '{$id}', name: '{$item['name']}' })";
+                            // Dulu: name: '{$item['name']}', inilah celah T9.
+                            $attrs['onclick'] = "Livewire.dispatch('modal-delete', ".$_js(['id' => (string) $id, 'name' => (string) ($item['name'] ?? '')]).')';
                             break;
                         case 'disabled':
                             $attrs['class'] .= ' !text-gray-300 cursor-not-allowed hover:!bg-transparent dark:!text-neutral-600';

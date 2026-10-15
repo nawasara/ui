@@ -39,8 +39,9 @@
                 @php
                     $isSelected = ($value === 'all' && empty($currentValue)) || $currentValue === (string) $value;
                 @endphp
+                {{-- Nilai dari data dibungkus Js::from, bukan '...' (audit keamanan 15 Oktober 2026, T9). --}}
                 <button type="button"
-                    wire:click="$set('{{ $model }}', '{{ $value === 'all' ? '' : $value }}')"
+                    wire:click="$set('{{ $model }}', {{ \Illuminate\Support\Js::from($value === 'all' ? '' : (string) $value) }})"
                     class="w-full flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm hover:bg-gray-100 focus:outline-none focus:bg-gray-100 dark:hover:bg-neutral-700 dark:hover:text-neutral-300 dark:focus:bg-neutral-700 transition-colors
                     {{ $isSelected ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' : 'text-gray-800 dark:text-neutral-400' }}">
                     @if ($isSelected)

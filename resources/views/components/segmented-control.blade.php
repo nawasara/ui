@@ -83,7 +83,7 @@
             ]));
         @endphp
         <button type="button"
-            @if ($wireMethod) wire:click="{{ $wireMethod }}('{{ $opt['key'] }}')" @endif
+            @if ($wireMethod) wire:click="{{ $wireMethod }}({{ \Illuminate\Support\Js::from((string) $opt['key']) }})" @endif
             class="{{ $btnClass }}"
             role="tab"
             @if ($isActive) aria-selected="true" @endif>
