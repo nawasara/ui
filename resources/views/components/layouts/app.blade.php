@@ -112,7 +112,16 @@
     </div>
     <!-- End Content -->
 
-    <livewire:nawasara-developer-tools.components.developer-tools />
+    {{--
+        ⚠️ Hanya di lingkungan local, diperiksa di SERVER.
+        Komponen ini menjalankan perintah artisan. Dulu dipasang di setiap
+        halaman dan hanya tombolnya yang disembunyikan lewat APP_DEBUG, sehingga
+        method-nya tetap dapat dipanggil dari konsol browser oleh user mana pun
+        (audit keamanan 15 Oktober 2026, temuan K1).
+    --}}
+    @if (app()->isLocal() && class_exists(\Nawasara\DeveloperTools\Livewire\Components\DeveloperTools::class))
+        <livewire:nawasara-developer-tools.components.developer-tools />
+    @endif
     <x-nawasara-toaster::toaster position="top-right" :duration="5000" />
     <x-nawasara-modal::script />
     <x-nawasara-ui::init-preline />
