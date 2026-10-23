@@ -17,8 +17,21 @@
      - Above sm: full numbered pagination + "Showing X to Y of Z results"
        on the left.
 
-     Compatible with both Livewire wire:navigate (links retain href) and
-     bare Laravel pagination. Livewire automatically intercepts clicks. --}}
+     ⚠️ Di dalam komponen Livewire, tautan WAJIB memanggil aksi paginasi
+     Livewire (nextPage/previousPage/gotoPage), bukan sekadar href.
+
+     Dulu komentar di sini menyebut "Livewire automatically intercepts
+     clicks", dan itu keliru: href biasa memuat ulang seluruh halaman.
+     URL-nya hanya membawa ?page=N (paginator dibangun di permintaan
+     Livewire, bukan dari URL peramban), sehingga komponen di-mount ulang
+     dan setiap saringan kembali ke nilai bawaannya. Di halaman Versi PHP
+     secscan, saringan Status yang sudah dihapus muncul lagi di halaman 2
+     (Oktober 2026). Berlaku di semua halaman daftar.
+
+     href tetap dipasang supaya "buka di tab baru" dan klik tengah bekerja;
+     klik biasa dicegah lalu diteruskan ke Livewire. Penanda `livewire`
+     dikirim view override di livewire-overrides/. Pemanggil Laravel biasa
+     (tanpa Livewire) tetap memakai href. --}}
 
 @if ($paginator->hasPages())
     @php
@@ -50,6 +63,19 @@
             }
             return url($url);
         };
+
+        $livewire = $livewire ?? false;
+        $pageName = $paginator->getPageName();
+        $scrollTo = $scrollTo ?? 'body';
+        $scroll = $scrollTo !== false
+            ? "(\$el.closest('{$scrollTo}') || document.querySelector('{$scrollTo}')).scrollIntoView()"
+            : '';
+        $lw = function (string $call) use ($livewire, $scroll) {
+            if (! $livewire) {
+                return '';
+            }
+            return 'wire:click.prevent="'.e($call).'"'.($scroll !== '' ? ' x-on:click="'.e($scroll).'"' : '');
+        };
     @endphp
 
     <nav role="navigation" aria-label="{{ __('Pagination Navigation') }}"
@@ -79,7 +105,7 @@
                     <x-lucide-chevron-left class="size-4" />
                 </span>
             @else
-                <a href="{{ $absUrl($paginator->previousPageUrl()) }}" rel="prev" class="{{ $iconBtnIdle }}"
+                <a href="{{ $absUrl($paginator->previousPageUrl()) }}" rel="prev" class="{{ $iconBtnIdle }}" {!! $lw("previousPage('{$pageName}')") !!}
                     aria-label="{{ __('pagination.previous') }}">
                     <x-lucide-chevron-left class="size-4" />
                 </a>
@@ -91,7 +117,7 @@
             </span>
 
             @if ($paginator->hasMorePages())
-                <a href="{{ $absUrl($paginator->nextPageUrl()) }}" rel="next" class="{{ $iconBtnIdle }}"
+                <a href="{{ $absUrl($paginator->nextPageUrl()) }}" rel="next" class="{{ $iconBtnIdle }}" {!! $lw("nextPage('{$pageName}')") !!}
                     aria-label="{{ __('pagination.next') }}">
                     <x-lucide-chevron-right class="size-4" />
                 </a>
@@ -110,7 +136,7 @@
                     <x-lucide-chevron-left class="size-4" />
                 </span>
             @else
-                <a href="{{ $absUrl($paginator->previousPageUrl()) }}" rel="prev" class="{{ $iconBtnIdle }}"
+                <a href="{{ $absUrl($paginator->previousPageUrl()) }}" rel="prev" class="{{ $iconBtnIdle }}" {!! $lw("previousPage('{$pageName}')") !!}
                     aria-label="{{ __('pagination.previous') }}">
                     <x-lucide-chevron-left class="size-4" />
                 </a>
@@ -130,7 +156,7 @@
                         @if ($page == $paginator->currentPage())
                             <span class="{{ $btnActive }}" aria-current="page">{{ $page }}</span>
                         @else
-                            <a href="{{ $absUrl($url) }}" class="{{ $btnIdle }}"
+                            <a href="{{ $absUrl($url) }}" class="{{ $btnIdle }}" {!! $lw('gotoPage('.(int) $page.", '{$pageName}')") !!}
                                 aria-label="{{ __('Go to page :page', ['page' => $page]) }}">{{ $page }}</a>
                         @endif
                     @endforeach
@@ -139,7 +165,7 @@
 
             {{-- Next --}}
             @if ($paginator->hasMorePages())
-                <a href="{{ $absUrl($paginator->nextPageUrl()) }}" rel="next" class="{{ $iconBtnIdle }}"
+                <a href="{{ $absUrl($paginator->nextPageUrl()) }}" rel="next" class="{{ $iconBtnIdle }}" {!! $lw("nextPage('{$pageName}')") !!}
                     aria-label="{{ __('pagination.next') }}">
                     <x-lucide-chevron-right class="size-4" />
                 </a>

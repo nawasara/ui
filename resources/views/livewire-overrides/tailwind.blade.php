@@ -9,4 +9,9 @@
      This file is just a thin alias - the real markup lives in the
      nawasara-ui::components.pagination component so we have a single
      source of truth for pagination styling. --}}
-@include('nawasara-ui::components.pagination', ['paginator' => $paginator, 'elements' => $elements])
+@include('nawasara-ui::components.pagination', [
+    'paginator' => $paginator,
+    'elements' => $elements,
+    'livewire' => true,
+    'scrollTo' => $scrollTo ?? 'body',
+])
