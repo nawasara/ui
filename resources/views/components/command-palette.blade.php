@@ -60,8 +60,12 @@
                             x-text="item.group"></div>
                     </template>
 
-                    <a :href="item.url" wire:navigate
-                        @click="close()"
+                    {{-- Tanpa wire:navigate mati: go(item) yang memilih
+                         Livewire.navigate atau pindah halaman biasa, sesuai
+                         penanda `navigate` item (halaman ber-sudo = false).
+                         href tetap ada untuk klik tengah / tab baru. --}}
+                    <a :href="item.url" data-palette-item
+                        @click.prevent="go(item)"
                         @mouseenter="active = idx"
                         class="flex items-center gap-3 px-4 py-2.5 text-sm cursor-pointer"
                         :class="active === idx

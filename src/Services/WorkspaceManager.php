@@ -306,6 +306,10 @@ class WorkspaceManager
                     'url' => $sub['url'],
                     'icon' => $sub['icon'] ?? null,
                     'group' => $wsLabel,
+                    // Palet ⌘K membuka dengan wire:navigate kecuali menu
+                    // menyatakan `'navigate' => false` (halaman ber-sudo).
+                    // Bawaan true supaya item lama tidak berubah perilaku.
+                    'navigate' => (bool) ($sub['navigate'] ?? true),
                 ];
             }
         }
